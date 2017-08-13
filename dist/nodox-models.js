@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var core_interfaces_1 = require("../interfaces/core-interfaces");
+var core_interfaces_1 = require("./interfaces/core-interfaces");
 /**
     @class Node
 */

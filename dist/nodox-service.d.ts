@@ -1,4 +1,4 @@
-import { INodoxService, ISerializer, IMessageBus, INodoxModule, INodoxDocument, IConnection, INode, IConnector, IOutput, IInput, INodeDefinition } from "../interfaces/core-interfaces";
+import { INodoxService, ISerializer, IMessageBus, INodoxModule, INodoxDocument, IConnection, INode, IConnector, IOutput, IInput, INodeDefinition } from "./interfaces/core-interfaces";
 export declare class NodoxService implements INodoxService {
     private serializer;
     messageBus: IMessageBus;

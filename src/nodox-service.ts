@@ -1,5 +1,5 @@
 ﻿import * as Guid from 'guid';
-import { INodoxService, ISerializer, IMessageBus, INodoxModule, INodoxDocument, IConnection, INode, IConnector, IOutput, IInput, INodeDefinition } from "../interfaces/core-interfaces";
+import { INodoxService, ISerializer, IMessageBus, INodoxModule, INodoxDocument, IConnection, INode, IConnector, IOutput, IInput, INodeDefinition } from "./interfaces/core-interfaces";
 import { NodoxDocument, Connection, Node, Point, Input, Output } from "./nodox-models";
 
 class IdProvider {

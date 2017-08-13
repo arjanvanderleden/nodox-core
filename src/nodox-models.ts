@@ -1,4 +1,4 @@
-import { IPoint, INode, IInput, IOutput, INodeDefinition, ConnectorType, IConnection, INodoxDocument, IInputDescriptor } from '../interfaces/core-interfaces';
+import { IPoint, INode, IInput, IOutput, INodeDefinition, ConnectorType, IConnection, INodoxDocument, IInputDescriptor } from './interfaces/core-interfaces';
 
 /**
     @class Node

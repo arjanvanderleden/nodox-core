@@ -1,5 +1,5 @@
 
-import { IMessageBus } from "../interfaces/core-interfaces";
+import { IMessageBus } from "./interfaces/core-interfaces";
 
 export class MessageSubscription {
     topic: string;

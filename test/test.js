@@ -1,7 +1,7 @@
 'use strict';
 
 var expect = require('chai').expect;
-var NodoxService = require('../dist/src/nodox-service').NodoxService;
+var NodoxService = require('../dist').NodoxService;
 var service = new NodoxService();
 
 describe('#NodoxService', function() {

@@ -1,4 +1,4 @@
-import { ISerializer, INodoxDocument } from "../interfaces/core-interfaces";
+import { ISerializer, INodoxDocument } from "./interfaces/core-interfaces";
 import { Connection, NodoxDocument, Node } from "./nodox-models";
 
 export class Serializer implements ISerializer {

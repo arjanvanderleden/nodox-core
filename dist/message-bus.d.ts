@@ -1,4 +1,4 @@
-import { IMessageBus } from "../interfaces/core-interfaces";
+import { IMessageBus } from "./interfaces/core-interfaces";
 export declare class MessageSubscription {
     topic: string;
     callback: Function;
