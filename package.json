@@ -12,7 +12,7 @@
     "prebuild": "npm run clean:dist",
     "build": "tsc",
     "precover": "npm run pretest",
-    "cover": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R spec test/*"
+    "cover": "node_modules/istanbul/lib/cli.js cover node_modules/mocha/bin/_mocha -- -R spec test/*.js"
   },
   "repository": {
     "type": "git",
