@@ -1,3 +1,7 @@
+src/**/*.js
+src/**/*.js.map
+
+
 # Logs
 logs
 *.log
