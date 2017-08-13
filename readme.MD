@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/arjanvanderleden/nodox-core.svg?branch=master)](https://travis-ci.org/arjanvanderleden/nodox-core)
+
 ## Installation
 
   `npm install @arjan.vander.leden/nodox-core`
