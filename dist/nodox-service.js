@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 var Guid = require("guid");
 var nodox_models_1 = require("./nodox-models");
+var nodox_serializer_1 = require("./nodox-serializer");
 var IdProvider = (function () {
     function IdProvider() {
     }
@@ -12,11 +13,10 @@ var IdProvider = (function () {
     return IdProvider;
 }());
 var NodoxService = (function () {
-    function NodoxService(serializer, messageBus) {
-        this.serializer = serializer;
-        this.messageBus = messageBus;
+    function NodoxService() {
         this.modules = new Array();
         this.acceptingDatatypes = {};
+        this.serializer = new nodox_serializer_1.Serializer();
     }
     NodoxService.prototype.getId = function () { return Guid.raw(); };
     NodoxService.prototype.registerModule = function (m) {
@@ -290,6 +290,7 @@ var NodoxService = (function () {
         });
         node.icon = definition.icon;
         document.nodes.push(node);
+        return node;
     };
     /**
      * Delete a selection of nodes and the connected connections

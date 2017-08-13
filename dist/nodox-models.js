@@ -27,6 +27,9 @@ var Node = (function () {
         n.outputs.forEach(function (o) { return _this.outputs.push(new Output().merge(o)); });
         return this;
     };
+    Node.prototype.dispose = function () {
+        this.inputs.forEach(function (i) { return i.connection = null; });
+    };
     return Node;
 }());
 exports.Node = Node;
@@ -45,8 +48,8 @@ exports.ConnectorValue = ConnectorValue;
 var Output = (function () {
     function Output() {
         this.connectorType = core_interfaces_1.ConnectorType.Output;
-        this.connections = new Array();
     }
+    //connections = new Array<IConnection>();
     Output.prototype.isInput = function () { return false; };
     Output.prototype.merge = function (o) {
         this.dataType = o.dataType;
@@ -57,6 +60,8 @@ var Output = (function () {
         this.name = o.name;
         this.nodeId = o.nodeId;
         return this;
+    };
+    Output.prototype.dispose = function () {
     };
     return Output;
 }());
@@ -77,6 +82,9 @@ var Input = (function () {
         this.value = i.value;
         return this;
     };
+    Input.prototype.dispose = function () {
+        this.connection = null;
+    };
     return Input;
 }());
 exports.Input = Input;
@@ -92,6 +100,12 @@ var Connection = (function () {
         this.outputConnectorId = c.outputConnectorId;
         this.outputNodeId = c.outputNodeId;
         return this;
+    };
+    Connection.prototype.dispose = function () {
+        this.inputConnector = null;
+        this.inputNode = null;
+        this.outputConnector = null;
+        this.outputNode = null;
     };
     return Connection;
 }());
@@ -110,6 +124,10 @@ var NodoxDocument = (function () {
         this.name = p.name;
         this.resultNodeId = this.resultNodeId;
         return this;
+    };
+    NodoxDocument.prototype.dispose = function () {
+        this.connections.forEach(function (c) { return c.dispose; });
+        this.nodes.forEach(function (n) { return n.dispose(); });
     };
     return NodoxDocument;
 }());

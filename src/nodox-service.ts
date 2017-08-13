@@ -1,6 +1,7 @@
 ﻿import * as Guid from 'guid';
 import { INodoxService, ISerializer, IMessageBus, INodoxModule, INodoxDocument, IConnection, INode, IConnector, IOutput, IInput, INodeDefinition } from "./interfaces/core-interfaces";
-import { NodoxDocument, Connection, Node, Point, Input, Output } from "./nodox-models";
+import { NodoxDocument, Connection, Node, Point, Input, Output} from "./nodox-models";
+import {Serializer} from "./nodox-serializer";
 
 class IdProvider {
   private static id: number = 0;
@@ -11,14 +12,14 @@ class IdProvider {
 }
 
 export class NodoxService implements INodoxService {
-  constructor(
-    private serializer: ISerializer,
-    public messageBus: IMessageBus
+  constructor(    
   ) {
+    this.serializer = new Serializer();
   }
   private getId(): string { return (<any>Guid).raw() }
   private modules: Array<INodoxModule> = new Array<INodoxModule>();
   private acceptingDatatypes = {};
+  private serializer: ISerializer
 
   registerModule(m: INodoxModule) {
     m.definitions.forEach(d => {
@@ -277,7 +278,7 @@ export class NodoxService implements INodoxService {
    * @param document 
    * @param definition 
    */
-  addNode(document: INodoxDocument, definition: INodeDefinition) {
+  addNode(document: INodoxDocument, definition: INodeDefinition) : INode {
 
     var node = new Node();
     node.id = this.getId();
@@ -313,6 +314,7 @@ export class NodoxService implements INodoxService {
     });
     node.icon = definition.icon;
     document.nodes.push(node);
+    return node;
   }
 
   /**

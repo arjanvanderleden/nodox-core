@@ -7,6 +7,9 @@ export declare enum NodeProcessingMode {
     AddNull = 1,
     Stop = 2,
 }
+export interface IDisposable {
+    dispose(): void;
+}
 export interface ISerializer {
     SerializeDocument(document: INodoxDocument): string;
 }
@@ -16,7 +19,6 @@ export interface IMessageBus {
     publish(topic: string, ...args: Array<any>): any;
 }
 export interface INodoxService {
-    messageBus: IMessageBus;
     registerModule(module: INodoxModule): any;
     getModules(): Array<INodoxModule>;
     getNodes(document: INodoxDocument): Array<INode>;
@@ -32,7 +34,7 @@ export interface INodoxService {
     getInput(document: INodoxDocument, id: string): IConnector;
     getOutput(document: INodoxDocument, id: string): IConnector;
     getNode(document: INodoxDocument, id: string): INode;
-    addNode(document: INodoxDocument, definition: INodeDefinition): any;
+    addNode(document: INodoxDocument, definition: INodeDefinition): INode;
     deleteSelection(document: INodoxDocument, nodes: Array<INode>): any;
     deleteNode(document: INodoxDocument, node: INode): void;
     removeConnection(document: INodoxDocument, connection: IConnection): any;
@@ -57,14 +59,14 @@ export interface IConnector {
 export interface IOutput extends IConnector {
     merge(output: IOutput): IOutput;
 }
-export interface IInput extends IConnector {
+export interface IInput extends IConnector, IDisposable {
     inputChanged: (name: string, value: any) => void;
     value: any;
     connection: IConnection;
     definition: IInputDescriptor;
     merge(input: IInput): IInput;
 }
-export interface INode {
+export interface INode extends IDisposable {
     id: string;
     name: string;
     point: IPoint;
@@ -77,7 +79,7 @@ export interface INode {
     isSelected: boolean;
     merge(source: INode): INode;
 }
-export interface INodoxDocument {
+export interface INodoxDocument extends IDisposable {
     id: string;
     name: string;
     description: string;
@@ -88,8 +90,9 @@ export interface INodoxDocument {
     authorEmail: string;
     cloneFunctions: any;
     merge(program: INodoxDocument): INodoxDocument;
+    dispose(): any;
 }
-export interface IConnection {
+export interface IConnection extends IDisposable {
     id: string;
     documentId: string;
     inputNodeId: string;

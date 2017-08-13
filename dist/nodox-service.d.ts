@@ -1,11 +1,10 @@
-import { INodoxService, ISerializer, IMessageBus, INodoxModule, INodoxDocument, IConnection, INode, IConnector, IOutput, IInput, INodeDefinition } from "./interfaces/core-interfaces";
+import { INodoxService, INodoxModule, INodoxDocument, IConnection, INode, IConnector, IOutput, IInput, INodeDefinition } from "./interfaces/core-interfaces";
 export declare class NodoxService implements INodoxService {
-    private serializer;
-    messageBus: IMessageBus;
-    constructor(serializer: ISerializer, messageBus: IMessageBus);
+    constructor();
     private getId();
     private modules;
     private acceptingDatatypes;
+    private serializer;
     registerModule(m: INodoxModule): void;
     getModules(): Array<INodoxModule>;
     getNode(document: INodoxDocument, id: string): INode;
@@ -54,7 +53,7 @@ export declare class NodoxService implements INodoxService {
      * @param document
      * @param definition
      */
-    addNode(document: INodoxDocument, definition: INodeDefinition): void;
+    addNode(document: INodoxDocument, definition: INodeDefinition): INode;
     /**
      * Delete a selection of nodes and the connected connections
      * @param document

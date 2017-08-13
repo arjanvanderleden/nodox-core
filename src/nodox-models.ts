@@ -1,4 +1,4 @@
-import { IPoint, INode, IInput, IOutput, INodeDefinition, ConnectorType, IConnection, INodoxDocument, IInputDescriptor } from './interfaces/core-interfaces';
+import { IPoint, INode, IInput, IOutput, INodeDefinition, ConnectorType, IConnection, INodoxDocument, IInputDescriptor,IDisposable } from './interfaces/core-interfaces';
 
 /**
     @class Node
@@ -32,6 +32,9 @@ export class Node implements INode {
     n.outputs.forEach(o => this.outputs.push(new Output().merge(o)));
     return this;
   }
+  dispose() {
+    this.inputs.forEach(i=>i.connection = null);
+  }
 }
 
 export class NodeValues {
@@ -56,7 +59,7 @@ export class Output implements IOutput {
   dataType: string;
   label: string;
   index: number;
-  connections = new Array<IConnection>();
+  //connections = new Array<IConnection>();
 
   isInput(): boolean { return false; }
   merge(o: IOutput): IOutput {
@@ -68,6 +71,9 @@ export class Output implements IOutput {
     this.name = o.name;
     this.nodeId = o.nodeId;
     return this;
+  }
+
+  dispose(){
   }
 }
 
@@ -85,7 +91,7 @@ export class Input implements IInput {
   inputChanged: (name: string, value) => void;
   definition: IInputDescriptor;
 
-  merge(i: IInput): Input {
+  merge(i: IInput): IInput {
     this.dataType = i.dataType;
     this.connectorType = i.connectorType;
     this.id = i.id;
@@ -95,6 +101,10 @@ export class Input implements IInput {
     this.nodeId = i.nodeId;
     this.value = i.value;
     return this;
+  }
+
+  dispose(){
+    this.connection = null;
   }
 }
 
@@ -129,6 +139,13 @@ export class Connection implements IConnection {
     this.outputNodeId = c.outputNodeId;
     return this;
   }
+
+  dispose(){
+    this.inputConnector = null;
+    this.inputNode = null;
+    this.outputConnector = null;
+    this.outputNode = null;
+  }
 }
 
 export class NodoxDocument implements INodoxDocument {
@@ -153,6 +170,11 @@ export class NodoxDocument implements INodoxDocument {
   constructor() {
     this.nodes = new Array<INode>();
     this.connections = new Array<IConnection>();
+  }
+
+  dispose(){
+    this.connections.forEach(c=>c.dispose);
+    this.nodes.forEach(n=>n.dispose());    
   }
 }
 

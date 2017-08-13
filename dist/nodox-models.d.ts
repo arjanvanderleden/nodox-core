@@ -19,6 +19,7 @@ export declare class Node implements INode {
     definition: INodeDefinition;
     isSelected: boolean;
     merge(n: INode): INode;
+    dispose(): void;
 }
 export declare class NodeValues {
     keyNames: Array<string>;
@@ -40,9 +41,9 @@ export declare class Output implements IOutput {
     dataType: string;
     label: string;
     index: number;
-    connections: IConnection[];
     isInput(): boolean;
     merge(o: IOutput): IOutput;
+    dispose(): void;
 }
 export declare class Input implements IInput {
     id: string;
@@ -57,7 +58,8 @@ export declare class Input implements IInput {
     connection: IConnection;
     inputChanged: (name: string, value) => void;
     definition: IInputDescriptor;
-    merge(i: IInput): Input;
+    merge(i: IInput): IInput;
+    dispose(): void;
 }
 export declare class Connection implements IConnection {
     id: string;
@@ -73,6 +75,7 @@ export declare class Connection implements IConnection {
     inputPoint: IPoint;
     outputPoint: IPoint;
     merge(c: IConnection): IConnection;
+    dispose(): void;
 }
 export declare class NodoxDocument implements INodoxDocument {
     id: string;
@@ -86,6 +89,7 @@ export declare class NodoxDocument implements INodoxDocument {
     cloneFunctions: {};
     merge(p: INodoxDocument): INodoxDocument;
     constructor();
+    dispose(): void;
 }
 export declare class Point implements IPoint {
     x: number;
