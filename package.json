@@ -1,6 +1,6 @@
 {
   "name": "nodox-core",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Nodox core classes",
   "main": "dist/index.js",
   "scripts": {
