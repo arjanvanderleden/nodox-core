@@ -28,7 +28,7 @@
   },
   "homepage": "https://github.com/arjanvanderleden/nodox-core#readme",
   "dependencies": {
-    "guid": "0.0.12"
+    "uuid": "^3.1.0"
   },
   "devDependencies": {
     "@types/chai": "^4.0.3",

@@ -1,4 +1,4 @@
-﻿import * as Guid from 'guid';
+﻿import * as uuidv5 from 'uuid/v5';
 import { INodoxService, ISerializer, IMessageBus, INodoxModule, INodoxDocument, IConnection, INode, IConnector, IOutput, IInput, INodeDefinition } from "./interfaces/core-interfaces";
 import { NodoxDocument, Connection, Node, Point, Input, Output} from "./nodox-models";
 import {Serializer} from "./nodox-serializer";
@@ -16,7 +16,7 @@ export class NodoxService implements INodoxService {
   ) {
     this.serializer = new Serializer();
   }
-  private getId(): string { return (<any>Guid).raw() }
+  private getId(): string { return uuidv5('io.nodox',uuidv5.DNS); }
   private modules: Array<INodoxModule> = new Array<INodoxModule>();
   private acceptingDatatypes = {};
   private serializer: ISerializer
@@ -173,7 +173,7 @@ export class NodoxService implements INodoxService {
 
     var oldConnections = document.connections.filter(c => c.inputConnector == inputConnector);
 
-    if (this.canAcceptConnection(outputConnector, inputConnector)) { //this.canAcceptConnection(outputConnector,inputConnector)
+    if (this.canAcceptConnection(outputConnector, inputConnector)) {
       var connection = new Connection();
       connection.id = this.getId();
       connection.documentId = document.id;
@@ -186,7 +186,6 @@ export class NodoxService implements INodoxService {
       connection.outputConnector = outputConnector;
       connection.inputNode = this.getNode(document, inputConnector.nodeId);
       connection.outputNode = this.getNode(document, outputConnector.nodeId);
-      //connection.canvasManager = connection.inputNode.canvasManager;
       inputConnector.connection = connection;
       oldConnections.forEach(oc => {
         this.removeConnection(document, oc)

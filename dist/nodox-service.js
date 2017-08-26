@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var Guid = require("guid");
+var uuidv5 = require("uuid/v5");
 var nodox_models_1 = require("./nodox-models");
 var nodox_serializer_1 = require("./nodox-serializer");
 var IdProvider = (function () {
@@ -18,7 +18,7 @@ var NodoxService = (function () {
         this.acceptingDatatypes = {};
         this.serializer = new nodox_serializer_1.Serializer();
     }
-    NodoxService.prototype.getId = function () { return Guid.raw(); };
+    NodoxService.prototype.getId = function () { return uuidv5('io.nodox', uuidv5.DNS); };
     NodoxService.prototype.registerModule = function (m) {
         var _this = this;
         m.definitions.forEach(function (d) {
@@ -167,7 +167,6 @@ var NodoxService = (function () {
             connection.outputConnector = outputConnector;
             connection.inputNode = this.getNode(document, inputConnector.nodeId);
             connection.outputNode = this.getNode(document, outputConnector.nodeId);
-            //connection.canvasManager = connection.inputNode.canvasManager;
             inputConnector.connection = connection;
             oldConnections.forEach(function (oc) {
                 _this.removeConnection(document, oc);
