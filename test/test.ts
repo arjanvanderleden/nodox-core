@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
 import { NodoxService, INodoxModule, NodoxDocument, INode } from '../dist'
-import {testModule} from './test-module';
+import {TestModule} from './test-module';
 var service: NodoxService;
 var document: NodoxDocument;
 var firstNode : INode;
@@ -13,7 +13,8 @@ describe('#NodoxService', () => {
 
     beforeEach(() => {
         service = new NodoxService();
-        service.registerModule(<INodoxModule>testModule);
+        var module = new TestModule();
+        service.registerModule(module);
     });
 
     it('should have one module',()=>{
@@ -25,6 +26,13 @@ describe('#NodoxService', () => {
         var module = service.getModules()[0];
         expect(module.definitions.length).to.be.equal(2);
     })
+
+    it('return a definition by its fullName',()=>{
+        var definition = service.getDefinition('test.add');
+        expect(definition).to.be.a('object');
+        expect(definition.fullName).to.be.equal('test.add');
+    })
+
 
     it('should create a new Nodox document', ()=> {
         document = service.createNewDocument();

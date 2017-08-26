@@ -11,7 +11,8 @@ var secondNode;
 describe('#NodoxService', function () {
     beforeEach(function () {
         service = new dist_1.NodoxService();
-        service.registerModule(test_module_1.testModule);
+        var module = new test_module_1.TestModule();
+        service.registerModule(module);
     });
     it('should have one module', function () {
         var ms = service.getModules();
@@ -20,6 +21,11 @@ describe('#NodoxService', function () {
     it('with 2 definitions', function () {
         var module = service.getModules()[0];
         chai_1.expect(module.definitions.length).to.be.equal(2);
+    });
+    it('return a definition by its fullName', function () {
+        var definition = service.getDefinition('test.add');
+        chai_1.expect(definition).to.be.a('object');
+        chai_1.expect(definition.fullName).to.be.equal('test.add');
     });
     it('should create a new Nodox document', function () {
         document = service.createNewDocument();
