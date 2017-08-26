@@ -32,6 +32,10 @@ var NodoxService = (function () {
         //TODO check for dependencies
         this.modules.push(m);
     };
+    NodoxService.prototype.getDefinition = function (fullName) {
+        var result = this.find(this.modules, function (m) { return m.definitions; }, function (def) { return def.fullName == fullName; });
+        return result;
+    };
     NodoxService.prototype.getModules = function () {
         return this.modules;
     };

@@ -6,6 +6,7 @@ export declare class NodoxService implements INodoxService {
     private acceptingDatatypes;
     private serializer;
     registerModule(m: INodoxModule): void;
+    getDefinition(fullName: string): INodeDefinition;
     getModules(): Array<INodoxModule>;
     getNode(document: INodoxDocument, id: string): INode;
     getConnection(document: INodoxDocument, id: string): IConnection;

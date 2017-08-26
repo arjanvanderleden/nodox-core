@@ -21,6 +21,7 @@ export interface IMessageBus {
 export interface INodoxService {
     registerModule(module: INodoxModule): any;
     getModules(): Array<INodoxModule>;
+    getDefinition(fullname: string): INodeDefinition;
     getNodes(document: INodoxDocument): Array<INode>;
     getConnections(document: INodoxDocument): Array<IConnection>;
     createNewDocument(): INodoxDocument;

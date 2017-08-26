@@ -34,6 +34,11 @@ export class NodoxService implements INodoxService {
     this.modules.push(m);
   }
 
+  getDefinition(fullName : string) : INodeDefinition{
+    var result : INodeDefinition = this.find(this.modules, m => m.definitions, def => def.fullName == fullName);
+    return result;
+  }
+
   getModules(): Array<INodoxModule> {
     return this.modules;
   }
