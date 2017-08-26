@@ -22,7 +22,7 @@ export declare class NodoxService implements INodoxService {
      * @param modules : INodoxModule[]
      */
     wire(document: INodoxDocument, modules: Array<INodoxModule>): void;
-    connect(document: INodoxDocument, inputConnector: IInput, outputConnector: IOutput): void;
+    connect(document: INodoxDocument, inputConnector: IInput, outputConnector: IOutput): IConnection;
     createNewDocument(): INodoxDocument;
     /**
      * Assigns new ids to document, nodes, node inputs, node outputs and connections
@@ -44,7 +44,7 @@ export declare class NodoxService implements INodoxService {
     getNodes(document: INodoxDocument): Array<INode>;
     private doesAccept(incomingType, outgoingType);
     /**
-     * Return true if source and tarhet connector match with respect to dataType
+     * Return true if source and target connector match with respect to dataType
      * @param sourceConnector
      * @param targetConnector
      */

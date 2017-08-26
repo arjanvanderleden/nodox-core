@@ -44,20 +44,42 @@ describe('#NodoxService', () => {
         expect(nodes.length).equals(0);
     });
 
-    it('it should return a node after adding', ()=> {
-        var module = service.getModules()[0];
-        firstNode = service.addNode(document, module.definitions[0]);
+    it('should return definition with fullname "test.add"', ()=> {
+        var definitionAdd = service.getDefinition('test.add');
+        expect(definitionAdd,'definitionAdd').to.be.a('object');
+        var definitionMax = service.getDefinition('test.max');
+        expect(definitionMax,'definitionMax').to.be.a('object');
+    });
+
+    it('should return a node after adding', ()=> {
+        var definitionMax = service.getDefinition('test.max');
+        firstNode = service.addNode(document, definitionMax);
         expect(firstNode).to.be.a('object');
         var nodes = service.getNodes(document);
         expect(nodes.length).equals(1);
     });
 
-    it('it should have two node after adding an other', ()=> {
-        var module = service.getModules()[0];
-        secondNode = service.addNode(document, module.definitions[1]);
+    it('should have two nodes with different ids after adding an other', ()=> {
+        var definitionAdd = service.getDefinition('test.add');
+        secondNode = service.addNode(document, definitionAdd);
         var nodes = service.getNodes(document);
         expect(nodes.length).equals(2);
+        expect(nodes[0].id,'id 1').not.to.be.empty;
+        expect(nodes[1].id,'id 2').not.to.be.empty;
+        expect(nodes[0].id).not.to.be.equal(nodes[1].id);
     });
+
+
+    it('should connect two nodes',()=>{
+        var nodes = service.getNodes(document);
+        var nodeMax = nodes[0];
+        var nodeAdd = nodes[1];
+        expect(nodeMax.definition.fullName,'nodeMax.definition.fullName').to.be.equal('test.max');
+        expect(nodeAdd.definition.fullName,'nodeAdd.definition.fullName').to.be.equal('test.add');
+
+        var connection = service.connect(document, nodeAdd.inputs[0], nodeMax.outputs[0]);
+        expect(connection,'connection').to.be.a('object');
+    })
 
 
 

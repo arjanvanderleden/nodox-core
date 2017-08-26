@@ -1,4 +1,4 @@
-﻿import * as uuidv5 from 'uuid/v5';
+﻿import * as uuidv4 from 'uuid/v4';
 import { INodoxService, ISerializer, IMessageBus, INodoxModule, INodoxDocument, IConnection, INode, IConnector, IOutput, IInput, INodeDefinition } from "./interfaces/core-interfaces";
 import { NodoxDocument, Connection, Node, Point, Input, Output} from "./nodox-models";
 import {Serializer} from "./nodox-serializer";
@@ -16,7 +16,7 @@ export class NodoxService implements INodoxService {
   ) {
     this.serializer = new Serializer();
   }
-  private getId(): string { return uuidv5('io.nodox',uuidv5.DNS); }
+  private getId(): string { return uuidv4('io.nodox',uuidv4.DNS); }
   private modules: Array<INodoxModule> = new Array<INodoxModule>();
   private acceptingDatatypes = {};
   private serializer: ISerializer
@@ -169,7 +169,7 @@ export class NodoxService implements INodoxService {
   }
 
   // connect two nodes
-  connect(document: INodoxDocument, inputConnector: IInput, outputConnector: IOutput) {
+  connect(document: INodoxDocument, inputConnector: IInput, outputConnector: IOutput) : IConnection {
 
     var oldConnections = document.connections.filter(c => c.inputConnector == inputConnector);
 
@@ -191,7 +191,11 @@ export class NodoxService implements INodoxService {
         this.removeConnection(document, oc)
       });
       document.connections.push(connection);
+      return connection;
+    } else {
+      console.log(`cannot accept, input ${inputConnector.dataType}, output ${outputConnector.dataType}` )
     }
+    return null;
   }
 
   createNewDocument(): INodoxDocument {
@@ -265,7 +269,7 @@ export class NodoxService implements INodoxService {
   }
 
   /**
-   * Return true if source and tarhet connector match with respect to dataType
+   * Return true if source and target connector match with respect to dataType
    * @param sourceConnector 
    * @param targetConnector 
    */

@@ -36,7 +36,7 @@ export interface INodoxService {
     getDocumentJson(document: INodoxDocument): string;
     fromJson(s: string): INodoxDocument;
 
-    connect(document: INodoxDocument, inputConnector: IInput, outputConnector: IOutput);
+    connect(document: INodoxDocument, inputConnector: IInput, outputConnector: IOutput) : IConnection;
     canAcceptConnection(sourceConnector: IConnector, targetConnector: IConnector): boolean;
     indexOfConnector(node: INode, connector: IConnector): number;
     getNodeFromConnector(document: INodoxDocument, connector: IConnector): INode;

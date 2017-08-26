@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-var uuidv5 = require("uuid/v5");
+var uuidv4 = require("uuid/v4");
 var nodox_models_1 = require("./nodox-models");
 var nodox_serializer_1 = require("./nodox-serializer");
 var IdProvider = (function () {
@@ -18,7 +18,7 @@ var NodoxService = (function () {
         this.acceptingDatatypes = {};
         this.serializer = new nodox_serializer_1.Serializer();
     }
-    NodoxService.prototype.getId = function () { return uuidv5('io.nodox', uuidv5.DNS); };
+    NodoxService.prototype.getId = function () { return uuidv4('io.nodox', uuidv4.DNS); };
     NodoxService.prototype.registerModule = function (m) {
         var _this = this;
         m.definitions.forEach(function (d) {
@@ -172,7 +172,12 @@ var NodoxService = (function () {
                 _this.removeConnection(document, oc);
             });
             document.connections.push(connection);
+            return connection;
         }
+        else {
+            console.log("cannot accept, input " + inputConnector.dataType + ", output " + outputConnector.dataType);
+        }
+        return null;
     };
     NodoxService.prototype.createNewDocument = function () {
         var newDoc = new nodox_models_1.NodoxDocument();
@@ -241,7 +246,7 @@ var NodoxService = (function () {
         return false;
     };
     /**
-     * Return true if source and tarhet connector match with respect to dataType
+     * Return true if source and target connector match with respect to dataType
      * @param sourceConnector
      * @param targetConnector
      */
