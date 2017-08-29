@@ -31,11 +31,11 @@ export class MessageBus implements IMessageBus {
         }
     }
 
-    publish(topic: string, ...args: Array<any>) {
+    publish(topic: string, data? : any) {
         this.subscriptions.forEach((subscr: MessageSubscription, i: number) => {
             if (subscr.topic === topic) {
                 setTimeout(function () {
-                    subscr.callback(args);
+                    subscr.callback(data);
                 });
             }
         });
