@@ -8,5 +8,5 @@ export declare class MessageBus implements IMessageBus {
     private subscriptions;
     subscribe(topic: string, callback: Function): void;
     unSubscribe(topic: string, callback: Function): void;
-    publish(topic: string, ...args: Array<any>): void;
+    publish(topic: string, data?: any): void;
 }

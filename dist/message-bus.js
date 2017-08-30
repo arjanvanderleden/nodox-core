@@ -28,15 +28,11 @@ var MessageBus = (function () {
             }
         }
     };
-    MessageBus.prototype.publish = function (topic) {
-        var args = [];
-        for (var _i = 1; _i < arguments.length; _i++) {
-            args[_i - 1] = arguments[_i];
-        }
+    MessageBus.prototype.publish = function (topic, data) {
         this.subscriptions.forEach(function (subscr, i) {
             if (subscr.topic === topic) {
                 setTimeout(function () {
-                    subscr.callback(args);
+                    subscr.callback(data);
                 });
             }
         });
