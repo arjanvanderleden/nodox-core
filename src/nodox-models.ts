@@ -195,6 +195,7 @@ export class Point implements IPoint {
     var x = Math.round(this.x / gridX) * gridX;
     var y = Math.round(this.y / gridY) * gridY;
     return new Point(x, y);
+
   }
 
   scale(factor: number): Point {
@@ -208,6 +209,16 @@ export class Point implements IPoint {
 
   subtract(p: IPoint): Point {
     return new Point(this.x - p.x, this.y - p.y);
+  }
+
+  assign(p: IPoint): Point{
+    this.x = p.x;
+    this.y = p.y;
+    return this;
+  }
+
+  clone(): Point {
+    return new Point(this.x,this.y);
   }
 
 }

@@ -154,6 +154,11 @@ var Point = (function () {
     Point.prototype.subtract = function (p) {
         return new Point(this.x - p.x, this.y - p.y);
     };
+    Point.prototype.assign = function (p) {
+        this.x = p.x;
+        this.y = p.y;
+        return this;
+    };
     return Point;
 }());
 exports.Point = Point;
