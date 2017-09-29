@@ -159,6 +159,9 @@ var Point = (function () {
         this.y = p.y;
         return this;
     };
+    Point.prototype.clone = function () {
+        return new Point(this.x, this.y);
+    };
     return Point;
 }());
 exports.Point = Point;

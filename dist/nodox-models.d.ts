@@ -101,4 +101,5 @@ export declare class Point implements IPoint {
     scaleRelativeTo(point: IPoint, factor: number): Point;
     subtract(p: IPoint): Point;
     assign(p: IPoint): Point;
+    clone(): Point;
 }

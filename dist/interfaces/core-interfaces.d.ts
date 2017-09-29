@@ -117,6 +117,7 @@ export interface IPoint {
     scaleRelativeTo(point: IPoint, factor: number): IPoint;
     subtract(p: IPoint): IPoint;
     assign(p: IPoint): IPoint;
+    clone(): IPoint;
 }
 export interface IDataType {
     name: string;
