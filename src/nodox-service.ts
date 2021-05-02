@@ -1,266 +1,167 @@
-﻿import * as uuidv4 from 'uuid/v4';
-import { INodoxService, ISerializer, IMessageBus, INodoxModule, INodoxDocument, IConnection, INode, IConnector, IOutput, IInput, INodeDefinition } from "./interfaces/core-interfaces";
-import { NodoxDocument, Connection, Node, Point, Input, Output} from "./nodox-models";
-import {Serializer} from "./nodox-serializer";
+﻿import { v4 } from 'uuid';
+import { Connector, NodoxModule, NodoxNodeDefinition, NodoxService, NodoxDocument, Connection, NodoxNode, InputConnector, OutputConnector } from '.';
+import { ConnectorType, InputDefinition, OutputDefinition } from './interfaces';
 
-class IdProvider {
-  private static id: number = 0;
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+export const uuidIdProvider = () => v4();
 
-  static getId(): number {
-    return this.id++;
-  }
-}
+export type IdProvider = () => string;
 
-export class NodoxService implements INodoxService {
-  constructor(    
-  ) {
-    this.serializer = new Serializer();
-  }
-  private getId(): string { return uuidv4('io.nodox',uuidv4.DNS); }
-  private modules: Array<INodoxModule> = new Array<INodoxModule>();
-  private acceptingDatatypes = {};
-  private serializer: ISerializer
+export const createService: (getId: IdProvider) => NodoxService = (getId) =>  {
 
-  registerModule(m: INodoxModule) {
-    m.definitions.forEach(d => {
-      d.nodoxModule = m;
-      d.icon = d.icon || "nodox:core_nodox";
-      var existingDef = this.find(this.modules, m => m.definitions, def => def.fullName == d.fullName);
+  const modules: NodoxModule[] = [];
+
+  const getDefinitionLookup = () => modules.reduce((definitionLookup, module) =>{
+    return module.definitions.reduce((lookup , definition) =>{
+      lookup[definition.fullName] = definition;
+      return lookup;
+    }, definitionLookup);
+  }, {} as {[key: string]: NodoxNodeDefinition })
+
+  const getDefinition = (fullName: string) => getDefinitionLookup()[fullName];
+
+  const registerModule = (module: NodoxModule) => {
+    module.definitions.forEach(definition => {
+      definition.icon = definition.icon || "nodox:core_nodox";
+      const existingDef = getDefinition(definition.fullName);
       if (existingDef) {
-        console.log("duplicate definition: " + d.fullName + ", " + d.nodoxModule.name + ", " + existingDef.nodoxModule.name);
+        throw new Error(`duplicate definition (${definition.fullName}): ${module.name} and ${existingDef.moduleName}`);
       }
     });
-    //TODO check for dependencies
-    this.modules.push(m);
+    const moduleNameSpaces = modules.map(m => m.namespace);
+    module.dependencies.forEach(dependency => {
+      if (!moduleNameSpaces.includes(dependency)) {
+        throw new Error(`Module '${module.namespace}' dependency not met: ${dependency}`)
+      }
+    })
+    modules.push(module);
   }
 
-  getDefinition(fullName : string) : INodeDefinition{
-    var result : INodeDefinition = this.find(this.modules, m => m.definitions, def => def.fullName == fullName);
-    return result;
+  const getModules = () => modules;
+  const byId = (id: string) => (item: {id:string}) => id === item.id;
+  const getNode = (document: NodoxDocument, nodeId: string) => document.nodes.find(byId(nodeId));
+  const getConnection = (document: NodoxDocument, connectionId: string) => document.connections.find(byId(connectionId));
+
+  const getInput = (document: NodoxDocument, inputId: string) =>{
+    const foundNode = document.nodes.find(node => node.inputs.find(byId(inputId)) !== undefined);
+    return {node: foundNode, input: foundNode?.inputs.find(byId(inputId)) };
   }
 
-  getModules(): Array<INodoxModule> {
-    return this.modules;
+  const getOutput = (document: NodoxDocument, outputId: string) =>{
+    const foundNode = document.nodes.find(node => node.inputs.find(byId(outputId)));
+    return {node: foundNode, output: foundNode?.outputs.find(byId(outputId)) };
   }
 
-  getNode(document: INodoxDocument, id: string): INode {
-    return document.nodes.find(n => (n.id == id));
+  const indexOfConnector = (node: NodoxNode, connector: Connector) => {
+    const index = node.inputs.findIndex(byId(connector.id));
+    return index > -1 ? index : node.outputs.findIndex(byId(connector.id));
   }
 
-  getConnection(document: INodoxDocument, id: string): IConnection {
-    return document.connections.find(c => c.id == id);
-  }
-
-  getInput(document: INodoxDocument, id: string): IInput {
-    var result: IInput;
-    document.nodes.find(n => n.inputs.find(i => (result = i).id == id) != null);
-    return result;
-  }
-
-  getOutput(document: INodoxDocument, id: string): IOutput {
-    var result: IOutput;
-    document.nodes.find(n => n.outputs.find(o => (result = o).id == id) != null);
-    return result;
-  }
-
-  indexOfConnector(node: INode, connector: IConnector): number {
-    var index = node.inputs.findIndex(c => c.id == connector.id);
-    if (index > -1) return index;
-    return node.outputs.findIndex(c => c.id == connector.id);
-  }
-
-  getNodeFromConnector(document: INodoxDocument, connector: IConnector): INode {
-    var result = document.nodes.find(n =>
+  const getNodeFromConnector = (document: NodoxDocument, connector: Connector) => {
+    const result = document.nodes.find(n =>
       n.inputs.findIndex(c => c.id == connector.id) > -1 ||
       n.outputs.findIndex(c => c.id == connector.id) > -1
     )
     return result;
   }
 
-  removeConnection(document: INodoxDocument, connection: IConnection) {
-    if (connection == null) return;
-    var input = <IInput>connection.inputConnector;
-
-    if (input.connection.id === connection.id) {
-      input.connection = null;
-    }
-    var index = document.connections.indexOf(connection);
-    if (index > -1) {
-      document.connections.splice(index, 1);
+  const removeConnection = (document: NodoxDocument, connectionId: string) => {
+    const connection = getConnection(document, connectionId);
+    if (connection !== undefined) {
+      const {input} = getInput(document, connection.inputConnectorId);
+      if (input !== undefined) {
+        delete input.connectionId;
+      }
+      const {output} = getOutput(document, connection.outputConnectorId);
+      if (output !== undefined) {
+        delete output.connectionId;
+      }
+      const index = document.connections.indexOf(connection);
+      if (index > -1) {
+        document.connections.splice(index, 1);
+      }
     }
   }
 
-  private find<T, U>(collection: T[], property: (p: T) => U[], predicate: (p: U) => boolean): U {
-    for (let item of collection) {
-      var found = property(item).find(predicate);
-      if (found) return found;
-    }
-    return null;
-  }
+  const connect = (document: NodoxDocument, inputConnector: InputConnector, outputConnector: OutputConnector) => {
 
-  /**
-   * set the connectors for nodes and connections of document
-   * @param document : INodoxDocument
-   * @param modules : INodoxModule[]
-   */
-  wire(document: INodoxDocument, modules: Array<INodoxModule>) {
-    document.cloneFunctions = {};
-    this.modules.forEach(m => {
-      Object.getOwnPropertyNames(m.cloneFunctions).forEach(cf => {
-        if (document.cloneFunctions[cf]) console.warn("duplicate clone function for datatype %o", cf);
-        document.cloneFunctions[cf] = m.cloneFunctions[cf];
-      });
-    });
+    const oldConnectionIds = document
+      .connections
+      .filter(connection => connection.inputConnectorId == inputConnector.id)
+      .map(connection => connection.id);
 
-    // update definition
-    document.nodes.forEach(node => {
-      node.definition = this.find(modules, m => m.definitions, d => d.fullName.toLowerCase() == node.nodeType.toLowerCase());
-      if (!node.definition) {
-        console.warn("Node " + node.nodeType + " has no definition");
+    if (canAcceptConnection(outputConnector, inputConnector)) {
+      const connection: Connection = {
+        id: getId(),
+        inputConnectorId: inputConnector.id,
+        outputConnectorId: outputConnector.id,
       }
-      // update inputs
-      node.inputs.forEach(i => {
-        i.definition = node.definition.inputs.find(id => id.name.toLowerCase() == i.name.toLowerCase());
-        if (!i.definition) {
-          console.warn("Input " + i.name + "(" + i.dataType + ")" + "has no definition");
-        }
-      });
-
-    });
-
-    document.connections.forEach(connection => {
-
-      //set the outputNodes
-      connection.inputNode = document.nodes.find(n => n.id === connection.inputNodeId);
-      if (!connection.inputNode) {
-        let err = `No inputNode found for connection. inputNodeId=${connection.inputNodeId}`;
-        console.log(err);
-        throw (err)
-      }
-
-      connection.outputNode = document.nodes.find(n => n.id === connection.outputNodeId);
-      if (!connection.inputNode) {
-        let err = `No outNode found for connection. outputNodeId=${connection.outputNodeId}`;
-        console.log(err);
-        throw (err)
-      }
-
-      var input = connection.inputNode.inputs.find(i => i.id === connection.inputConnectorId);
-      if (!input) {
-        let err = `No Input found for connection. outputNodeId=${connection.inputConnectorId}`;
-        console.log(err);
-        throw (err)
-      }
-
-      //TODO implement IDisposable pattern: garbage collection will have a problem here
-      // Or implement a service.findConnection(connectionId) service.findInput(inputId) pattern
-      input.connection = connection;
-      connection.inputConnector = input;
-
-      var output = connection.outputNode.outputs.find(i => i.id === connection.outputConnectorId);
-      if (!output) {
-        let err = `No Output found for connection. outputConnectorId=${connection.outputConnectorId}`;
-        console.log(err);
-        throw (err)
-      }
-      connection.outputConnector = output;
-
-    });
-  }
-
-  // connect two nodes
-  connect(document: INodoxDocument, inputConnector: IInput, outputConnector: IOutput) : IConnection {
-
-    var oldConnections = document.connections.filter(c => c.inputConnector == inputConnector);
-
-    if (this.canAcceptConnection(outputConnector, inputConnector)) {
-      var connection = new Connection();
-      connection.id = this.getId();
-      connection.documentId = document.id;
-      connection.inputConnectorId = inputConnector.id;
-      connection.outputConnectorId = outputConnector.id;
-      connection.inputNodeId = inputConnector.nodeId;
-      connection.outputNodeId = outputConnector.nodeId;
-
-      connection.inputConnector = inputConnector;
-      connection.outputConnector = outputConnector;
-      connection.inputNode = this.getNode(document, inputConnector.nodeId);
-      connection.outputNode = this.getNode(document, outputConnector.nodeId);
-      inputConnector.connection = connection;
-      oldConnections.forEach(oc => {
-        this.removeConnection(document, oc)
+      inputConnector.connectionId = connection.id;
+      oldConnectionIds.forEach(id => {
+        removeConnection(document, id)
       });
       document.connections.push(connection);
       return connection;
     } else {
       console.log(`cannot accept, input ${inputConnector.dataType}, output ${outputConnector.dataType}` )
+      return undefined;
     }
-    return null;
   }
 
-  createNewDocument(): INodoxDocument {
-    var newDoc = new NodoxDocument();
-    newDoc.id = this.getId();
-    newDoc.name = "New Nodox document";
-    return newDoc
+  const createNewDocument = () => {
+    const newDocument: NodoxDocument = {
+      id: getId(),
+      name: "New Nodox document",
+      connections: [],
+      nodes: [],
+    }
+    return newDocument
   }
 
   /**
    * Assigns new ids to document, nodes, node inputs, node outputs and connections
    * used for cloning a document
-   * @param document 
+   * @param document
    */
-  reAssignIds(document: INodoxDocument) {
-    var newDocumentId = this.getId();
-    document.id = newDocumentId;
+  const reAssignIds = (document: NodoxDocument) => {
+    document.id = getId();
     document.name += ".cloned";
-    var oldNodeIds = {};
+    const oldConnectorIds: {[key: string]: string} = {};
     document.nodes.forEach(n => {
-      var newId = this.getId();
-      oldNodeIds[n.id] = newId;
+      const newId = getId();
+      oldConnectorIds[n.id] = newId;
       n.id = newId;
-      n.documentId = newDocumentId;
-      n.inputs.forEach(i => i.nodeId == n.id);
-      n.outputs.forEach(o => o.nodeId == n.id);
+      n.inputs.forEach(inputConnector => {
+        const newInputId = getId();
+        inputConnector.nodeId = n.id,
+        oldConnectorIds[inputConnector.id] = newInputId;
+        inputConnector.id = newInputId;
+      });
+      n.outputs.forEach(outputConnector => {
+        const newOutputId = getId();
+        outputConnector.nodeId = n.id;
+        oldConnectorIds[outputConnector.id] = newOutputId;
+        outputConnector.id = oldConnectorIds[newOutputId];
+      });
     });
-    document.connections.forEach(c => {
-      c.id = this.getId();
-      c.documentId = newDocumentId;
-      c.inputNodeId = oldNodeIds[c.inputNodeId];
-      c.outputNodeId = oldNodeIds[c.outputNodeId];
+    document.connections.forEach(connector => {
+      connector.id = getId();
+      connector.inputConnectorId = oldConnectorIds[connector.inputConnectorId];
+      connector.outputConnectorId = oldConnectorIds[connector.outputConnectorId]
     });
-  }
-
-  /**
-   * Returns a json string serialized by the serializer
-   * @param document 
-   */
-  getDocumentJson(document: INodoxDocument): string {
-    return this.serializer.SerializeDocument(document);
-  }
-
-  /**
-   * Returns a wired document from a json string;
-   * @param s 
-   */
-  fromJson(s: string): INodoxDocument {
-    var document: INodoxDocument;
-    if (typeof (s) == 'string') {
-      var document = <INodoxDocument>JSON.parse(s);
-      this.wire(document,this.modules);
-    }
     return document;
   }
 
-  getConnections(document: INodoxDocument): Array<IConnection> {
-    return document.connections;
+  const fromJson = (s: string) => {
+    const document: NodoxDocument = <NodoxDocument>JSON.parse(s);
+    return document;
   }
 
-  getNodes(document: INodoxDocument): Array<INode> {
-    return document.nodes;
-  }
+  const getConnections = (document: NodoxDocument) => document.connections;
 
-  private doesAccept(incomingType: string, outgoingType: string) {
+  const getNodes = (document: NodoxDocument) => document.nodes;
+
+  const doesAccept = (incomingType: string, outgoingType: string) => {
     //TODO refine using accepts of datatypes in Module
     //for now: always accept "nodox.core.any"
     if (incomingType == "nodox.modules.core.any" || outgoingType == "nodox.modules.core.any") return true;
@@ -268,83 +169,83 @@ export class NodoxService implements INodoxService {
     return false;
   }
 
-  /**
-   * Return true if source and target connector match with respect to dataType
-   * @param sourceConnector 
-   * @param targetConnector 
-   */
-  canAcceptConnection(sourceConnector: IConnector, targetConnector: IConnector): boolean {
+  const canAcceptConnection = (sourceConnector: Connector, targetConnector: Connector) => {
     if (sourceConnector.connectorType == targetConnector.connectorType) return false;
     if (sourceConnector.nodeId == targetConnector.nodeId) return false;
     if (sourceConnector.dataType == targetConnector.dataType) return true;
-    return this.doesAccept(sourceConnector.dataType, targetConnector.dataType);
+    return doesAccept(sourceConnector.dataType, targetConnector.dataType);
   }
 
 
-  /**
-   * Adss a new Node to document
-   * @param document 
-   * @param definition 
-   */
-  addNode(document: INodoxDocument, definition: INodeDefinition) : INode {
+  const addNode = (document: NodoxDocument, definition: NodoxNodeDefinition) => {
 
-    var node = new Node();
-    node.id = this.getId();
-    node.name = definition.name;
-    node.point = new Point(0, 0);// todo is event point if created from event
-    node.nodeType = definition.fullName;
-    node.definition = definition;
-    node.documentId = document.id;
+    const toInputConnector = (nodeId: string) => (inputDefinition: InputDefinition) => ({
+      id: getId(),
+      nodeId,
+      dataType: inputDefinition.dataType,
+      name: inputDefinition.name,
+      definitionFullName: definition.fullName,
+      connectionId: ConnectorType.input
+    } as InputConnector)
 
-    //model
-    node.inputs = new Array<IInput>();
-    definition.inputs.forEach(id => {
-      var input = new Input();
-      input.id = this.getId();
-      input.dataType = id.dataType;
-      input.name = id.name;
-      input.value = (typeof (id.defaultValue) === "function") ? id.defaultValue() : id.defaultValue;
-      input.definition = id;
-      //wiring up:
-      input.nodeId = node.id;
-      node.inputs.push(input);
-    });
+    const toOutputConnector = (nodeId: string) => (outputDefinition: OutputDefinition) => ({
+      id: getId(),
+      connectorType: ConnectorType.output,
+      dataType: outputDefinition.dataType,
+      nodeId
+    } as OutputConnector);
 
-    node.outputs = new Array<IOutput>();
-    definition.outputs.forEach(od => {
-      var output = new Output();
-      output.dataType = od.dataType;
-      output.name = od.name;
-      //wiring up:
-      output.nodeId = node.id;
-      output.id = this.getId();
-      node.outputs.push(output);
-    });
-    node.icon = definition.icon;
+    const id = getId();
+    const node: NodoxNode = {
+      id,
+      name: definition.name,
+      definitionFullName: definition.fullName,
+      inputs: definition.inputs.map(toInputConnector(id)),
+      outputs: definition.outputs.map(toOutputConnector(id)),
+      icon: definition.icon,
+    }
     document.nodes.push(node);
     return node;
   }
 
-  /**
-   * Delete a selection of nodes and the connected connections
-   * @param document 
-   * @param nodes 
-   */
-  deleteSelection(document: INodoxDocument, nodes: Array<INode>) {
-    nodes.forEach(n => this.deleteNode(document, n));
+  const deleteNodes = (document: NodoxDocument, nodes: Array<NodoxNode>) => {
+    nodes.forEach(n => deleteNode(document, n));
   }
 
-  /**
-   * Delete a node and the connected connections
-   * @param document 
-   * @param node 
-   */
-  deleteNode(document: INodoxDocument, node: INode): void {
-    var connections = document.connections.filter(c => c.inputNodeId == node.id || c.outputNodeId == node.id);
-    connections.forEach(c => {
-      var p = this.removeConnection(document, c);
+  const deleteNode = (document: NodoxDocument, node: NodoxNode) => {
+    document.connections.filter(connection =>
+      [
+        ...node.inputs.map(input => input.connectionId),
+        ...node.outputs.map(output => output.connectionId)
+      ]
+      .includes(connection.id))
+      .forEach(connection => {
+      removeConnection(document, connection.id);
     });
     document.nodes.splice(document.nodes.indexOf(node), 1);
   }
+
+  return <NodoxService>{
+    getConnections,
+    getDefinition,
+    addNode,
+    canAcceptConnection,
+    connect,
+    createNewDocument,
+    deleteNode,
+    deleteNodes,
+    fromJson,
+    getInput,
+    getModules,
+    getNode,
+    getNodeFromConnector,
+    getNodes,
+    getOutput,
+    indexOfConnector,
+    reAssignIds,
+    registerModule,
+    removeConnection
+};
+
 }
 

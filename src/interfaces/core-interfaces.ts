@@ -1,259 +1,206 @@
-﻿
-export enum ConnectorType { Input, Output }
+﻿import { NodoxRunningContext } from "./nodox-runner";
+
+export enum ConnectorType {
+    input = 'input',
+    output = 'output',
+}
 
 export enum NodeProcessingMode {
-    Wrap = 0,
-    AddNull = 1,
-    Stop = 2
+    wrap = 'wrap',
+    addNull = 'add-null',
+    stop = 'stop'
 }
 
-export interface IDisposable {
-    dispose():void;
+export interface NodoxService {
+
+    registerModule(module: NodoxModule): void;
+    getModules(): Array<NodoxModule>;
+    getDefinition(fullname : string) : NodoxNodeDefinition;
+
+    getNodes(document: NodoxDocument): Array<NodoxNode>;
+    getConnections(document: NodoxDocument): Array<Connection>;
+    createNewDocument(): NodoxDocument;
+
+    reAssignIds(document: NodoxDocument): NodoxDocument;
+
+    fromJson(s: string): NodoxDocument;
+
+    /**
+     * Connects and inputConnector with an outputConnector
+     * @param document
+     * @param inputConnector
+     * @param outputConnector
+     */
+    connect(document: NodoxDocument, inputConnector: InputConnector, outputConnector: OutputConnector) : Connection;
+
+    /**
+     * Return true if source and target connector match with respect to dataType
+     * @param sourceConnector
+     * @param targetConnector
+     */
+    canAcceptConnection(sourceConnector: Connector, targetConnector: Connector): boolean;
+
+    indexOfConnector(node: NodoxNode, connector: Connector): number;
+
+    getNodeFromConnector(document: NodoxDocument, connector: Connector): NodoxNode;
+
+    /**
+     *
+     * @param document
+     * @param id id of connector
+     * @returns {connector: the connector, node: the node this connector belongs to }
+     */
+    getInput(document: NodoxDocument, id: string): {connector?: Connector, node?: NodoxNode};
+
+    /**
+     *
+     * @param document
+     * @param id id of connector
+     * @returns {connector: the connector, node: the node this connector belongs to }
+     */
+    getOutput(document: NodoxDocument, id: string): {connector?: Connector, node?: NodoxNode};
+
+    getNode(document: NodoxDocument, id: string): NodoxNode;
+
+    /**
+     * adds an unconnected NodoxNode to the document
+     * @param document
+     * @param definition
+     * @returns the node
+     */
+    addNode(document: NodoxDocument, definition: NodoxNodeDefinition) : NodoxNode;
+
+    /**
+     * Deletes an array of nodes from a document
+     * @param document
+     * @param nodes
+     */
+    deleteNodes(document: NodoxDocument, nodes: Array<NodoxNode>): void;
+
+    /**
+     * removes a node and all related connections from a document
+     * @param document
+     * @param node
+     */
+    deleteNode(document: NodoxDocument, node: NodoxNode): void;
+
+     /**
+     * Removes a connection and it's references from the document,
+     * @param document
+     * @param connection
+     * @returns void
+     */
+    removeConnection(document: NodoxDocument, Id: string): void;
 }
 
-export interface ISerializer {
-    SerializeDocument(document: INodoxDocument): string;
+export interface Connection {
+    id: string;
+    inputConnectorId: string;
+    outputConnectorId: string;
 }
 
-export interface IMessageBus {
-    subscribe(topic: string, callback: Function);
-    unSubscribe(topic: string, callback: Function);
-    publish(topic: string, ...args: Array<any>)
-}
-
-export interface INodoxService {
-
-    registerModule(module: INodoxModule);
-    getModules(): Array<INodoxModule>;
-    getDefinition(fullname : string) : INodeDefinition;
-
-    getNodes(document: INodoxDocument): Array<INode>;
-    getConnections(document: INodoxDocument): Array<IConnection>;
-    createNewDocument(): INodoxDocument;
-
-    reAssignIds(document: INodoxDocument);
-
-    getDocumentJson(document: INodoxDocument): string;
-    fromJson(s: string): INodoxDocument;
-
-    connect(document: INodoxDocument, inputConnector: IInput, outputConnector: IOutput) : IConnection;
-    canAcceptConnection(sourceConnector: IConnector, targetConnector: IConnector): boolean;
-    indexOfConnector(node: INode, connector: IConnector): number;
-    getNodeFromConnector(document: INodoxDocument, connector: IConnector): INode;
-    getInput(document: INodoxDocument, id: string): IConnector;
-    getOutput(document: INodoxDocument, id: string): IConnector;
-
-    getNode(document: INodoxDocument, id: string): INode;
-    addNode(document: INodoxDocument, definition: INodeDefinition) : INode;
-
-    deleteSelection(document: INodoxDocument, nodes: Array<INode>);
-    deleteNode(document: INodoxDocument, node: INode): void;
-    removeConnection(document: INodoxDocument, connection: IConnection);
-}
-
-export interface IUserInteractionService {
-    confirm(question: string, title: string): Promise<boolean>;
-    alert(question: string, title: string): Promise<boolean>;
-    chooseOne(options: Array<Object>): Promise<Object>;
-    chooseSome(options: Array<Object>): Promise<Object[]>;
-    notify(text: string);
-}
-
-
-
-
-export interface IConnector {
-    //storage
-    nodeId: string;
+export interface Connector {
     id: string;
     name: string;
     label: string;
     dataType: string;
     connectorType: ConnectorType;
-
-    //model
-    isInput(): boolean;
-
-    //canvas
-    index: number;
+    connectionId?: string;
+    nodeId: string;
 }
 
-export interface IOutput extends IConnector {
-    merge(output: IOutput): IOutput;
+export interface OutputConnector extends Connector {
+    connectorType: ConnectorType.output;
 }
 
-export interface IInput extends IConnector, IDisposable {
-    inputChanged: (name: string, value: any) => void;
-    value: any;
-    connection: IConnection;
-    definition: IInputDescriptor;
-    merge(input: IInput): IInput;
+export interface InputConnector extends Connector {
+    connectorType: ConnectorType.input;
+    value?: unknown;
+    definitionFullName: string;
 }
 
-export interface INode extends IDisposable {
+export interface NodoxNode {
     id: string;
     name: string;
-    point: IPoint;
-    nodeType: string;
-    documentId: string;
+    definitionFullName: string;
+    inputs: InputConnector[];
+    outputs: OutputConnector[];
     icon: string;
-    definition: INodeDefinition;
-    inputs: Array<IInput>;
-    outputs: Array<IOutput>;
-    isSelected: boolean;
-    merge(source: INode): INode;
 }
 
-export interface INodoxDocument extends IDisposable {
+export interface NodoxDocument {
     id: string;
     name: string;
-    description: string;
-    nodes: Array<INode>;
-    connections: Array<IConnection>;
-    resultNodeId: string;
-    author: string;
-    authorEmail: string;
-    cloneFunctions: any;
-    merge(program: INodoxDocument): INodoxDocument;
-    dispose();
+    description?: string;
+    nodes: Array<NodoxNode>;
+    connections: Array<Connection>;
+    author?: string;
+    authorEmail?: string;
 }
 
-export interface IConnection extends IDisposable {
-    //storage
-    id: string;
-    documentId: string;
-    inputNodeId: string;
-    inputConnectorId: string;
-    outputNodeId: string;
-    outputConnectorId: string;
-
-    //model
-    outputNode: INode;
-    outputConnector: IOutput;
-    inputNode: INode;
-    inputConnector: IInput;
-
-    //canvas
-    //canvasManager: ICanvasManager;
-    inputPoint: IPoint;
-    outputPoint: IPoint;
-
-    merge(connection: IConnection): IConnection;
-}
-
-export interface IPoint {
-    //model
-    x: number;
-    y: number;
-    add(p: IPoint): IPoint;
-    snapTo(gridX: number, gridY: number): IPoint;
-    scale(factor: number): IPoint;
-    scaleRelativeTo(point: IPoint, factor: number): IPoint;
-    subtract(p: IPoint): IPoint;
-    assign(p: IPoint): IPoint;
-    clone(): IPoint;
-}
-
-
-
-export interface IDataType {
+export interface DataType {
     name: string;
     description: string;
     accepts: Array<string>;
 }
 
+export type CloneFunction<T> = (objectToClone: T) => T;
 
-
-export interface ICloneFunction<T> {
-    (objectToClone: T): T;
-}
-
-export interface INodeDefinition {
+export interface NodoxNodeDefinition {
     name: string;
     fullName: string;
+    moduleName: string;
     description: string;
-    processFunction: IProcessFunction;
-    inputs: Array<IInputDescriptor>;
-    outputs: Array<IOutputDescriptor>;
+    processFunction: ProcessFunction;
+    inputs: Array<InputDefinition>;
+    outputs: Array<OutputDefinition>;
     icon: string;
-    nodoxModule: INodoxModule;
-    preprocessFunction: IPreprocessFunction;
-    postprocessFunction: IPostprocessFunction;
+    preprocessFunction: PreprocessFunction;
+    postprocessFunction: PostprocessFunction;
     processingMode: NodeProcessingMode;
-
 }
 
-export interface INodoxModule {
+export interface NodoxModule {
     name: string;
     description: string;
     namespace: string;
-    dependencies: Array<string>;
-    dataTypes: Array<IDataType>;
-    definitions: Array<INodeDefinition>;
-    merge(otherModule: INodoxModule): INodoxModule;
-    cloneFunctions: any;
+    dependencies: string[];
+    dataTypes: DataType[];
+    definitions: NodoxNodeDefinition[];
 }
 
-export interface IInputDescriptor {
+export interface InputDefinition {
     name: string;
     dataType: string;
     description?: string;
-    label?: string;
-    defaultValue?: any;
+    defaultValue?: unknown;
     editorType?: string;
-    valueOptions?: Array<any>
+    valueOptions?: Array<unknown>
 }
 
-export interface IOutputDescriptor {
+export interface OutputDefinition {
     name: string;
     description: string;
     dataType: string;
-}
-
-export interface INodeDatabaseService {
-    getDocuments(): Promise<INodoxDocument[]>;
-    getDocument(documentId: string): Promise<INodoxDocument>;
-
-    updateNode(node: INode): Promise<INode>;
-    addNode(node: INode): Promise<INode>;
-    deleteNode(node: INode): Promise<boolean>;
-
-    updateConnection(connection: IConnection): Promise<IConnection>;
-    addConnection(connection: IConnection): Promise<IConnection>;
-    deleteConnection(connection: IConnection): Promise<boolean>;
-
-    addDocument(document: INodoxDocument): Promise<INodoxDocument>;
-    updateDocument(document: INodoxDocument): Promise<INodoxDocument>;
-    deleteDocument(id: string): Promise<boolean>;
-}
-
-
-export interface INodoxRunner {
-    run: (context: IRunningContext, outputNode: INode) => Promise<INodeValues>;
-}
-
-export interface IRunningContext {
-    modules: Array<INodoxModule>;
-    usedPromises: Object;
 }
 
 export interface INodeValues {
     keyNames: Array<string>;
-    inputLengths: any;
+    inputLengths: unknown;
     maxLength: number;
     minLength: number;
-    values: any;
+    values: unknown;
 }
 
-export interface IProcessFunction {
-    (context: IRunningContext, result: INodeValues, inputParams: Object, index: number): void;
+export interface ProcessFunction {
+    (context: NodoxRunningContext, result: INodeValues, inputParams: unknown, index: number): void;
 }
 
-export interface IPreprocessFunction {
-    (context: IRunningContext): void;
+export interface PreprocessFunction {
+    (context: NodoxRunningContext): void;
 }
 
-export interface IPostprocessFunction {
-    (context: IRunningContext, result: INodeValues): void;
+export interface PostprocessFunction {
+    (context: NodoxRunningContext, result: INodeValues): void;
 }
 
