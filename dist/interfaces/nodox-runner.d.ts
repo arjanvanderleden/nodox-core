@@ -1,4 +1,4 @@
-import { NodoxModule, NodoxNode } from ".";
+import { NodoxModule, NodoxNode } from '.'
 export interface NodoxRunner {
     run: (context: NodoxRunningContext, outputNode: NodoxNode) => Promise<any>;
 }

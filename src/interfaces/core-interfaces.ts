@@ -1,4 +1,6 @@
-﻿import { NodoxRunningContext } from "./nodox-runner";
+/* eslint-disable no-use-before-define */
+/* eslint-disable no-unused-vars */
+import { NodoxRunningContext } from './nodox-runner';
 
 export enum ConnectorType {
     input = 'input',
@@ -203,4 +205,3 @@ export interface PreprocessFunction {
 export interface PostprocessFunction {
     (context: NodoxRunningContext, result: INodeValues): void;
 }
-

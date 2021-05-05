@@ -1,12 +1,13 @@
-import { NodoxRunningContext } from "./nodox-runner";
+/* eslint-disable no-unused-vars */
+import { NodoxRunningContext } from './nodox-runner'
 export declare enum ConnectorType {
-    input = "input",
-    output = "output"
+    input = 'input',
+    output = 'output'
 }
 export declare enum NodeProcessingMode {
-    wrap = "wrap",
-    addNull = "add-null",
-    stop = "stop"
+    wrap = 'wrap',
+    addNull = 'add-null',
+    stop = 'stop'
 }
 export interface NodoxService {
     registerModule(module: NodoxModule): void;

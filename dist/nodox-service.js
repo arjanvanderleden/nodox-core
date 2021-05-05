@@ -53,8 +53,8 @@ var createService = function (getId) {
     };
     var getNodeFromConnector = function (document, connector) {
         var result = document.nodes.find(function (n) {
-            return n.inputs.findIndex(function (c) { return c.id == connector.id; }) > -1 ||
-                n.outputs.findIndex(function (c) { return c.id == connector.id; }) > -1;
+            return n.inputs.findIndex(function (c) { return c.id === connector.id; }) > -1 ||
+                n.outputs.findIndex(function (c) { return c.id === connector.id; }) > -1;
         });
         return result;
     };
@@ -78,7 +78,7 @@ var createService = function (getId) {
     var connect = function (document, inputConnector, outputConnector) {
         var oldConnectionIds = document
             .connections
-            .filter(function (connection) { return connection.inputConnectorId == inputConnector.id; })
+            .filter(function (connection) { return connection.inputConnectorId === inputConnector.id; })
             .map(function (connection) { return connection.id; });
         if (canAcceptConnection(outputConnector, inputConnector)) {
             var connection = {
@@ -149,18 +149,18 @@ var createService = function (getId) {
     var doesAccept = function (incomingType, outgoingType) {
         //TODO refine using accepts of datatypes in Module
         //for now: always accept "nodox.core.any"
-        if (incomingType == "nodox.modules.core.any" || outgoingType == "nodox.modules.core.any")
+        if (incomingType === "nodox.modules.core.any" || outgoingType === "nodox.modules.core.any")
             return true;
-        if (outgoingType == incomingType)
+        if (outgoingType === incomingType)
             return true;
         return false;
     };
     var canAcceptConnection = function (sourceConnector, targetConnector) {
-        if (sourceConnector.connectorType == targetConnector.connectorType)
+        if (sourceConnector.connectorType === targetConnector.connectorType)
             return false;
-        if (sourceConnector.nodeId == targetConnector.nodeId)
+        if (sourceConnector.nodeId === targetConnector.nodeId)
             return false;
-        if (sourceConnector.dataType == targetConnector.dataType)
+        if (sourceConnector.dataType === targetConnector.dataType)
             return true;
         return doesAccept(sourceConnector.dataType, targetConnector.dataType);
     };
