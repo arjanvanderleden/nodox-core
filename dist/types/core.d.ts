@@ -149,12 +149,13 @@ export interface NodoxNode {
 }
 /**
  * A collections of nodes and their connections
+ * T type of medtadata
  */
-export interface NodoxDocument {
+export interface NodoxDocument<T = never | any> {
     id: string;
     name: string;
     description?: string;
-    metaData?: Lookup<unknown>;
+    metaData?: Lookup<T>;
     nodes: Array<NodoxNode>;
     connections: Array<Connection>;
     author?: string;
