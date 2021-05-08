@@ -35,7 +35,7 @@ export interface NodoxService {
 
     getNodes(document: NodoxDocument): Array<NodoxNode>;
     getConnections(document: NodoxDocument): Array<Connection>;
-    createNewDocument(): NodoxDocument;
+    createNewDocument<T>(metaData?: T): NodoxDocument<T>;
 
     reAssignIds(document: NodoxDocument): NodoxDocument;
 

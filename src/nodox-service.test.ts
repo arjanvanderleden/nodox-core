@@ -6,7 +6,8 @@ import { DemoModule } from './mocks/module';
 describe('NodoxService: createNewDocument', () => {
   it('creates a new document', () => {
     const service = create(uuidIdProvider);
-    const document = service.createNewDocument();
+    const metaData = { x: 'y' };
+    const document = service.createNewDocument(metaData);
 
     expect(document).toBeDefined();
     expect(document.id).toBeDefined();
@@ -14,6 +15,15 @@ describe('NodoxService: createNewDocument', () => {
     expect(document.connections.length).toBe(0);
     expect(Array.isArray(document.nodes)).toBe(true);
     expect(document.nodes.length).toBe(0);
+    expect(document.metaData).toBeDefined();
+    expect(document.metaData!.x).toBe('y');
+  });
+
+  it('creates a new document', () => {
+    const service = create(uuidIdProvider);
+    const document = service.createNewDocument();
+    expect(document).toBeDefined();
+    expect(document.metaData).toBeUndefined();
   });
 });
 

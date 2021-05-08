@@ -103,12 +103,13 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
     }
   };
 
-  const createNewDocument = () => {
+  const createNewDocument = <T>(metaData?: T) => {
     const newDocument: NodoxDocument = {
       id: getId(),
       name: 'New Nodox document',
       connections: [],
-      nodes: []
+      nodes: [],
+      metaData
     };
     return newDocument;
   };

@@ -6,13 +6,22 @@ var module_1 = require("./mocks/module");
 describe('NodoxService: createNewDocument', function () {
     it('creates a new document', function () {
         var service = nodox_service_1.create(nodox_service_1.uuidIdProvider);
-        var document = service.createNewDocument();
+        var metaData = { x: 'y' };
+        var document = service.createNewDocument(metaData);
         expect(document).toBeDefined();
         expect(document.id).toBeDefined();
         expect(Array.isArray(document.connections)).toBe(true);
         expect(document.connections.length).toBe(0);
         expect(Array.isArray(document.nodes)).toBe(true);
         expect(document.nodes.length).toBe(0);
+        expect(document.metaData).toBeDefined();
+        expect(document.metaData.x).toBe('y');
+    });
+    it('creates a new document', function () {
+        var service = nodox_service_1.create(nodox_service_1.uuidIdProvider);
+        var document = service.createNewDocument();
+        expect(document).toBeDefined();
+        expect(document.metaData).toBeUndefined();
     });
 });
 describe('NodoxService: registerModule', function () {

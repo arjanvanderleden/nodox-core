@@ -28,7 +28,7 @@ export interface NodoxService {
     getDefinition(fullname: string): NodoxNodeDefinition;
     getNodes(document: NodoxDocument): Array<NodoxNode>;
     getConnections(document: NodoxDocument): Array<Connection>;
-    createNewDocument(): NodoxDocument;
+    createNewDocument<T>(metaData?: T): NodoxDocument<T>;
     reAssignIds(document: NodoxDocument): NodoxDocument;
     fromJson(s: string): NodoxDocument;
     /**

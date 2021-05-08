@@ -95,12 +95,13 @@ var create = function (getId) {
             return undefined;
         }
     };
-    var createNewDocument = function () {
+    var createNewDocument = function (metaData) {
         var newDocument = {
             id: getId(),
             name: 'New Nodox document',
             connections: [],
-            nodes: []
+            nodes: [],
+            metaData: metaData
         };
         return newDocument;
     };
