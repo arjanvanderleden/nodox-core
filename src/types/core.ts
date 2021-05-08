@@ -174,7 +174,7 @@ export interface NodoxDocument<T = never | any > {
     id: string;
     name: string;
     description?: string;
-    metaData?: Lookup<T>;
+    metaData?: T;
     nodes: Array<NodoxNode>;
     connections: Array<Connection>;
     author?: string;
