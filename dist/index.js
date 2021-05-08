@@ -11,4 +11,4 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 __exportStar(require("./nodox-service"), exports);
-__exportStar(require("./interfaces/core-interfaces"), exports);
+__exportStar(require("./types"), exports);

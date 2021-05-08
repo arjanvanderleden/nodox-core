@@ -1,4 +1,4 @@
-import { Lookup } from '../interfaces';
+import { Lookup } from '../types';
 export class DemoModule {
     name: string;
     description: string;

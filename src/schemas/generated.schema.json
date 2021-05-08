@@ -1,0 +1,369 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "definitions": {
+        "CloneFunction": {
+            "typeof": "function"
+        },
+        "Connection": {
+            "description": "The connection between two nodes connecting the inputConnector of one node\nto the outputConnector of another node",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "inputConnectorId": {
+                    "type": "string"
+                },
+                "outputConnectorId": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "Connector": {
+            "properties": {
+                "connectionId": {
+                    "type": "string"
+                },
+                "connectorType": {
+                    "$ref": "#/definitions/ConnectorType"
+                },
+                "dataType": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nodeId": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "ConnectorType": {
+            "enum": [
+                "input",
+                "output"
+            ],
+            "type": "string"
+        },
+        "DataType": {
+            "properties": {
+                "accepts": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "InputConnector": {
+            "properties": {
+                "connectionId": {
+                    "type": "string"
+                },
+                "connectorType": {
+                    "enum": [
+                        "input"
+                    ],
+                    "type": "string"
+                },
+                "dataType": {
+                    "type": "string"
+                },
+                "definitionFullName": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nodeId": {
+                    "type": "string"
+                },
+                "value": {
+                }
+            },
+            "type": "object"
+        },
+        "InputDefinition": {
+            "properties": {
+                "dataType": {
+                    "type": "string"
+                },
+                "defaultValue": {
+                },
+                "description": {
+                    "type": "string"
+                },
+                "editorType": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "valueOptions": {
+                    "items": {
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "InputExhaustedError": {
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "stack": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "NodeProcessingMode": {
+            "description": "defines what a node should do during processing\nwhen one the input has not enough values to provide\nfor the values if onother input\npossible values are:\n- wrap: start using values from the start (the output length is the length of the longest input)\n- addEmpty: use value undefined (the output length is the length of the longest input)\n- stop: stop processing values (the output length is the length of the shortest input)\n- throw: throw InputExhaustedError (processing is aborted by an exception)",
+            "enum": [
+                "add-empty",
+                "stop",
+                "throw",
+                "wrap"
+            ],
+            "type": "string"
+        },
+        "NodeValues": {
+            "properties": {
+                "inputLengths": {
+                },
+                "keyNames": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "maxLength": {
+                    "type": "number"
+                },
+                "minLength": {
+                    "type": "number"
+                },
+                "values": {
+                }
+            },
+            "type": "object"
+        },
+        "NodoxDocument": {
+            "properties": {
+                "author": {
+                    "type": "string"
+                },
+                "authorEmail": {
+                    "type": "string"
+                },
+                "connections": {
+                    "items": {
+                        "$ref": "#/definitions/Connection"
+                    },
+                    "type": "array"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nodes": {
+                    "items": {
+                        "$ref": "#/definitions/NodoxNode"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "NodoxModule": {
+            "properties": {
+                "dataTypes": {
+                    "items": {
+                        "$ref": "#/definitions/DataType"
+                    },
+                    "type": "array"
+                },
+                "definitions": {
+                    "items": {
+                        "$ref": "#/definitions/NodoxNodeDefinition"
+                    },
+                    "type": "array"
+                },
+                "dependencies": {
+                    "items": {
+                        "type": "string"
+                    },
+                    "type": "array"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "namespace": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "NodoxNode": {
+            "properties": {
+                "definitionFullName": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "inputs": {
+                    "items": {
+                        "$ref": "#/definitions/InputConnector"
+                    },
+                    "type": "array"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "outputs": {
+                    "items": {
+                        "$ref": "#/definitions/OutputConnector"
+                    },
+                    "type": "array"
+                }
+            },
+            "type": "object"
+        },
+        "NodoxNodeDefinition": {
+            "properties": {
+                "description": {
+                    "type": "string"
+                },
+                "fullName": {
+                    "type": "string"
+                },
+                "icon": {
+                    "type": "string"
+                },
+                "inputs": {
+                    "items": {
+                        "$ref": "#/definitions/InputDefinition"
+                    },
+                    "type": "array"
+                },
+                "moduleName": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "outputs": {
+                    "items": {
+                        "$ref": "#/definitions/OutputDefinition"
+                    },
+                    "type": "array"
+                },
+                "postprocessFunction": {
+                    "typeof": "function"
+                },
+                "preprocessFunction": {
+                    "typeof": "function"
+                },
+                "processFunction": {
+                    "typeof": "function"
+                },
+                "processingMode": {
+                    "$ref": "#/definitions/NodeProcessingMode"
+                }
+            },
+            "type": "object"
+        },
+        "NodoxService": {
+            "type": "object"
+        },
+        "OutputConnector": {
+            "properties": {
+                "connectionId": {
+                    "type": "string"
+                },
+                "connectorType": {
+                    "enum": [
+                        "output"
+                    ],
+                    "type": "string"
+                },
+                "dataType": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "label": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "nodeId": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "OutputDefinition": {
+            "properties": {
+                "dataType": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            },
+            "type": "object"
+        },
+        "PostprocessFunction": {
+            "typeof": "function"
+        },
+        "PreprocessFunction": {
+            "typeof": "function"
+        },
+        "ProcessFunction": {
+            "typeof": "function"
+        }
+    }
+}
+

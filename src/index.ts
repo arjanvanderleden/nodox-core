@@ -1,2 +1,2 @@
 export * from './nodox-service';
-export * from './interfaces/core-interfaces';
+export * from './types';

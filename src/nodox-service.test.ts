@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any @typescript-eslint/no-unused-vars @typescript-eslint/no-empty-function */
 
-import { createService, uuidIdProvider } from './nodox-service';
+import { create, uuidIdProvider } from './nodox-service';
 import { DemoModule } from './mocks/module';
 
 describe('NodoxService: createNewDocument', () => {
   it('creates a new document', () => {
-    const service = createService(uuidIdProvider);
+    const service = create(uuidIdProvider);
     const document = service.createNewDocument();
 
     expect(document).toBeDefined();
@@ -20,7 +20,7 @@ describe('NodoxService: createNewDocument', () => {
 describe('NodoxService: registerModule', () => {
   it('should register a module', () => {
     const module = new DemoModule();
-    const service = createService(uuidIdProvider);
+    const service = create(uuidIdProvider);
     expect(service.getModules().length).toBe(0);
     service.registerModule(module);
     expect(service.getModules().length).toBe(1);
@@ -28,7 +28,7 @@ describe('NodoxService: registerModule', () => {
 });
 
 describe('NodoxService: getDefinition', () => {
-  const service = createService(uuidIdProvider);
+  const service = create(uuidIdProvider);
   service.registerModule(new DemoModule());
 
   it(' should return a registerd definition', () => {
@@ -45,7 +45,7 @@ describe('NodoxService: getDefinition', () => {
 });
 
 describe('NodoxService: addNode', () => {
-  const service = createService(uuidIdProvider);
+  const service = create(uuidIdProvider);
   const module = new DemoModule();
   service.registerModule(module);
   const definition = service.getDefinition('nodox.modules.mock.identity');
@@ -62,7 +62,7 @@ describe('NodoxService: addNode', () => {
 });
 
 describe('NodoxService: canAcceptConnection', () => {
-  const service = createService(uuidIdProvider);
+  const service = create(uuidIdProvider);
   const module = new DemoModule();
   service.registerModule(module);
   const definition = service.getDefinition('nodox.modules.mock.identity');
@@ -89,7 +89,7 @@ describe('NodoxService: canAcceptConnection', () => {
 
 describe('NodoxService: getConnections', () => {
   it('should return connections', () => {
-    const service = createService(uuidIdProvider);
+    const service = create(uuidIdProvider);
     service.registerModule(new DemoModule());
     const document = service.createNewDocument();
     // eslint-disable-next-line no-unused-vars
@@ -100,13 +100,21 @@ describe('NodoxService: getConnections', () => {
 });
 
 describe('NodoxService: connect', () => {
-  it('', () => {
+  it('creates one connection', () => {
 
   });
 });
 
 describe('NodoxService: deleteNode', () => {
-  it('', () => {
+  it('deletes a node', () => {
+
+  });
+
+  it('deletes the connections to a node', () => {
+
+  });
+
+  it('does not delete other connections', () => {
 
   });
 });

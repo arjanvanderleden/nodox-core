@@ -1,13 +1,13 @@
 import { v4 } from 'uuid';
 import { Connector, NodoxModule, NodoxNodeDefinition, NodoxService, NodoxDocument, Connection, NodoxNode, InputConnector, OutputConnector } from '.';
-import { ConnectorType, InputDefinition, OutputDefinition } from './interfaces';
+import { ConnectorType, InputDefinition, OutputDefinition } from './types';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const uuidIdProvider = () => v4();
 
 export type IdProvider = () => string;
 
-export const createService: (getId: IdProvider) => NodoxService = (getId) => {
+export const create: (getId: IdProvider) => NodoxService = (getId) => {
   const modules: NodoxModule[] = [];
 
   const getDefinitionLookup = () => modules.reduce((definitionLookup, module) => {
@@ -42,13 +42,13 @@ export const createService: (getId: IdProvider) => NodoxService = (getId) => {
   const getConnection = (document: NodoxDocument, connectionId: string) => document.connections.find(byId(connectionId));
 
   const getInput = (document: NodoxDocument, inputId: string) => {
-    const foundNode = document.nodes.find(node => node.inputs.find(byId(inputId)) !== undefined);
-    return { node: foundNode, input: foundNode?.inputs.find(byId(inputId)) };
+    const node = document.nodes.find(node => node.inputs.find(byId(inputId)) !== undefined);
+    return { node, input: node?.inputs.find(byId(inputId)) };
   };
 
   const getOutput = (document: NodoxDocument, outputId: string) => {
-    const foundNode = document.nodes.find(node => node.inputs.find(byId(outputId)));
-    return { node: foundNode, output: foundNode?.outputs.find(byId(outputId)) };
+    const node = document.nodes.find(node => node.inputs.find(byId(outputId)) !== undefined);
+    return { node, output: node?.outputs.find(byId(outputId)) };
   };
 
   const indexOfConnector = (node: NodoxNode, connector: Connector) => {
@@ -57,11 +57,8 @@ export const createService: (getId: IdProvider) => NodoxService = (getId) => {
   };
 
   const getNodeFromConnector = (document: NodoxDocument, connector: Connector) => {
-    const result = document.nodes.find(n =>
-      n.inputs.findIndex(c => c.id === connector.id) > -1 ||
-      n.outputs.findIndex(c => c.id === connector.id) > -1
-    );
-    return result;
+    const node = getNode(document, connector.nodeId);
+    return node;
   };
 
   const removeConnection = (document: NodoxDocument, connectionId: string) => {
@@ -83,25 +80,25 @@ export const createService: (getId: IdProvider) => NodoxService = (getId) => {
   };
 
   const connect = (document: NodoxDocument, inputConnector: InputConnector, outputConnector: OutputConnector) => {
-    const oldConnectionIds = document
-      .connections
-      .filter(connection => connection.inputConnectorId === inputConnector.id)
-      .map(connection => connection.id);
-
     if (canAcceptConnection(outputConnector, inputConnector)) {
+      const currentInputConnections = document
+        .connections
+        .filter(connection => connection.inputConnectorId === inputConnector.id)
+        .map(connection => connection.id);
+
       const connection: Connection = {
         id: getId(),
         inputConnectorId: inputConnector.id,
         outputConnectorId: outputConnector.id
       };
+
       inputConnector.connectionId = connection.id;
-      oldConnectionIds.forEach(id => {
+      currentInputConnections.forEach(id => {
         removeConnection(document, id);
       });
       document.connections.push(connection);
       return connection;
     } else {
-      console.log(`cannot accept, input ${inputConnector.dataType}, output ${outputConnector.dataType}`);
       return undefined;
     }
   };
@@ -220,8 +217,7 @@ export const createService: (getId: IdProvider) => NodoxService = (getId) => {
       });
     document.nodes.splice(document.nodes.indexOf(node), 1);
   };
-
-  return <NodoxService>{
+  const service: NodoxService = {
     getConnections,
     getDefinition,
     addNode,
@@ -242,4 +238,5 @@ export const createService: (getId: IdProvider) => NodoxService = (getId) => {
     registerModule,
     removeConnection
   };
+  return service;
 };

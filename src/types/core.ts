@@ -1,5 +1,6 @@
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-unused-vars */
+import { Lookup } from '.';
 import { NodoxRunningContext } from './nodox-runner';
 
 export enum ConnectorType {
@@ -7,10 +8,23 @@ export enum ConnectorType {
     output = 'output',
 }
 
+export class InputExhaustedError extends Error {};
+
+/**
+ * defines what a node should do during processing
+ * when one the input has not enough values to provide
+ * for the values if onother input
+ * possible values are:
+ * - wrap: start using values from the start (the output length is the length of the longest input)
+ * - addEmpty: use value undefined (the output length is the length of the longest input)
+ * - stop: stop processing values (the output length is the length of the shortest input)
+ * - throw: throw InputExhaustedError (processing is aborted by an exception)
+ */
 export enum NodeProcessingMode {
     wrap = 'wrap',
-    addNull = 'add-null',
-    stop = 'stop'
+    addEmpty = 'add-empty',
+    stop = 'stop',
+    throw = 'throw',
 }
 
 export interface NodoxService {
@@ -33,7 +47,7 @@ export interface NodoxService {
      * @param inputConnector
      * @param outputConnector
      */
-    connect(document: NodoxDocument, inputConnector: InputConnector, outputConnector: OutputConnector) : Connection;
+    connect(document: NodoxDocument, inputConnector: InputConnector, outputConnector: OutputConnector): Connection | undefined;
 
     /**
      * Return true if source and target connector match with respect to dataType
@@ -42,9 +56,15 @@ export interface NodoxService {
      */
     canAcceptConnection(sourceConnector: Connector, targetConnector: Connector): boolean;
 
+    /**
+     * returns the index in the collection of inputs or outputs
+     * can be used for redering nodes
+     * @param node NodoxNode
+     * @param connector Connector
+     */
     indexOfConnector(node: NodoxNode, connector: Connector): number;
 
-    getNodeFromConnector(document: NodoxDocument, connector: Connector): NodoxNode;
+    getNodeFromConnector(document: NodoxDocument, connector: Connector): NodoxNode | undefined;
 
     /**
      *
@@ -62,7 +82,7 @@ export interface NodoxService {
      */
     getOutput(document: NodoxDocument, id: string): {connector?: Connector, node?: NodoxNode};
 
-    getNode(document: NodoxDocument, id: string): NodoxNode;
+    getNode(document: NodoxDocument, id: string): NodoxNode | undefined;
 
     /**
      * adds an unconnected NodoxNode to the document
@@ -95,12 +115,19 @@ export interface NodoxService {
     removeConnection(document: NodoxDocument, Id: string): void;
 }
 
+/**
+ * The connection between two nodes connecting the inputConnector of one node
+ * to the outputConnector of another node
+ */
 export interface Connection {
     id: string;
     inputConnectorId: string;
     outputConnectorId: string;
 }
 
+/**
+ * A
+ */
 export interface Connector {
     id: string;
     name: string;
@@ -111,16 +138,25 @@ export interface Connector {
     nodeId: string;
 }
 
+/**
+ * A Connector of type output that can connect to a Connector of type input
+ */
 export interface OutputConnector extends Connector {
     connectorType: ConnectorType.output;
 }
-
+/**
+ * A Connector of type input that can connect to a Connector of type output
+ */
 export interface InputConnector extends Connector {
     connectorType: ConnectorType.input;
     value?: unknown;
     definitionFullName: string;
 }
 
+/**
+ * An element in the document that holds inputs that provide input data
+ * to generate new data that will be presented through outputs of the node
+ */
 export interface NodoxNode {
     id: string;
     name: string;
@@ -130,10 +166,14 @@ export interface NodoxNode {
     icon: string;
 }
 
+/**
+ * A collections of nodes and their connections
+ */
 export interface NodoxDocument {
     id: string;
     name: string;
     description?: string;
+    metaData: Lookup<unknown>
     nodes: Array<NodoxNode>;
     connections: Array<Connection>;
     author?: string;
@@ -186,7 +226,7 @@ export interface OutputDefinition {
     dataType: string;
 }
 
-export interface INodeValues {
+export interface NodeValues {
     keyNames: Array<string>;
     inputLengths: unknown;
     maxLength: number;
@@ -194,14 +234,6 @@ export interface INodeValues {
     values: unknown;
 }
 
-export interface ProcessFunction {
-    (context: NodoxRunningContext, result: INodeValues, inputParams: unknown, index: number): void;
-}
-
-export interface PreprocessFunction {
-    (context: NodoxRunningContext): void;
-}
-
-export interface PostprocessFunction {
-    (context: NodoxRunningContext, result: INodeValues): void;
-}
+export type ProcessFunction = (context: NodoxRunningContext, result: NodeValues, inputParams: unknown, index: number) => void;
+export type PreprocessFunction = (context: NodoxRunningContext) => void;
+export type PostprocessFunction = (context: NodoxRunningContext, result: NodeValues) => void;

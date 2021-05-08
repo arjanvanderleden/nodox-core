@@ -5,12 +5,13 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from) {
     return to;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createService = exports.uuidIdProvider = void 0;
+exports.create = exports.uuidIdProvider = void 0;
 var uuid_1 = require("uuid");
-var interfaces_1 = require("./interfaces");
+var types_1 = require("./types");
+// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 var uuidIdProvider = function () { return uuid_1.v4(); };
 exports.uuidIdProvider = uuidIdProvider;
-var createService = function (getId) {
+var create = function (getId) {
     var modules = [];
     var getDefinitionLookup = function () { return modules.reduce(function (definitionLookup, module) {
         return module.definitions.reduce(function (lookup, definition) {
@@ -21,7 +22,7 @@ var createService = function (getId) {
     var getDefinition = function (fullName) { return getDefinitionLookup()[fullName]; };
     var registerModule = function (module) {
         module.definitions.forEach(function (definition) {
-            definition.icon = definition.icon || "nodox:core_nodox";
+            definition.icon = definition.icon || 'nodox:core_nodox';
             var existingDef = getDefinition(definition.fullName);
             if (existingDef) {
                 throw new Error("duplicate definition (" + definition.fullName + "): " + module.name + " and " + existingDef.moduleName);
@@ -40,23 +41,20 @@ var createService = function (getId) {
     var getNode = function (document, nodeId) { return document.nodes.find(byId(nodeId)); };
     var getConnection = function (document, connectionId) { return document.connections.find(byId(connectionId)); };
     var getInput = function (document, inputId) {
-        var foundNode = document.nodes.find(function (node) { return node.inputs.find(byId(inputId)) !== undefined; });
-        return { node: foundNode, input: foundNode === null || foundNode === void 0 ? void 0 : foundNode.inputs.find(byId(inputId)) };
+        var node = document.nodes.find(function (node) { return node.inputs.find(byId(inputId)) !== undefined; });
+        return { node: node, input: node === null || node === void 0 ? void 0 : node.inputs.find(byId(inputId)) };
     };
     var getOutput = function (document, outputId) {
-        var foundNode = document.nodes.find(function (node) { return node.inputs.find(byId(outputId)); });
-        return { node: foundNode, output: foundNode === null || foundNode === void 0 ? void 0 : foundNode.outputs.find(byId(outputId)) };
+        var node = document.nodes.find(function (node) { return node.inputs.find(byId(outputId)) !== undefined; });
+        return { node: node, output: node === null || node === void 0 ? void 0 : node.outputs.find(byId(outputId)) };
     };
     var indexOfConnector = function (node, connector) {
         var index = node.inputs.findIndex(byId(connector.id));
         return index > -1 ? index : node.outputs.findIndex(byId(connector.id));
     };
     var getNodeFromConnector = function (document, connector) {
-        var result = document.nodes.find(function (n) {
-            return n.inputs.findIndex(function (c) { return c.id === connector.id; }) > -1 ||
-                n.outputs.findIndex(function (c) { return c.id === connector.id; }) > -1;
-        });
-        return result;
+        var node = getNode(document, connector.nodeId);
+        return node;
     };
     var removeConnection = function (document, connectionId) {
         var connection = getConnection(document, connectionId);
@@ -76,34 +74,33 @@ var createService = function (getId) {
         }
     };
     var connect = function (document, inputConnector, outputConnector) {
-        var oldConnectionIds = document
-            .connections
-            .filter(function (connection) { return connection.inputConnectorId === inputConnector.id; })
-            .map(function (connection) { return connection.id; });
         if (canAcceptConnection(outputConnector, inputConnector)) {
+            var currentInputConnections = document
+                .connections
+                .filter(function (connection) { return connection.inputConnectorId === inputConnector.id; })
+                .map(function (connection) { return connection.id; });
             var connection = {
                 id: getId(),
                 inputConnectorId: inputConnector.id,
-                outputConnectorId: outputConnector.id,
+                outputConnectorId: outputConnector.id
             };
             inputConnector.connectionId = connection.id;
-            oldConnectionIds.forEach(function (id) {
+            currentInputConnections.forEach(function (id) {
                 removeConnection(document, id);
             });
             document.connections.push(connection);
             return connection;
         }
         else {
-            console.log("cannot accept, input " + inputConnector.dataType + ", output " + outputConnector.dataType);
             return undefined;
         }
     };
     var createNewDocument = function () {
         var newDocument = {
             id: getId(),
-            name: "New Nodox document",
+            name: 'New Nodox document',
             connections: [],
-            nodes: [],
+            nodes: []
         };
         return newDocument;
     };
@@ -114,7 +111,7 @@ var createService = function (getId) {
      */
     var reAssignIds = function (document) {
         document.id = getId();
-        document.name += ".cloned";
+        document.name += '.cloned';
         var oldConnectorIds = {};
         document.nodes.forEach(function (n) {
             var newId = getId();
@@ -122,8 +119,8 @@ var createService = function (getId) {
             n.id = newId;
             n.inputs.forEach(function (inputConnector) {
                 var newInputId = getId();
-                inputConnector.nodeId = n.id,
-                    oldConnectorIds[inputConnector.id] = newInputId;
+                inputConnector.nodeId = n.id;
+                oldConnectorIds[inputConnector.id] = newInputId;
                 inputConnector.id = newInputId;
             });
             n.outputs.forEach(function (outputConnector) {
@@ -147,9 +144,9 @@ var createService = function (getId) {
     var getConnections = function (document) { return document.connections; };
     var getNodes = function (document) { return document.nodes; };
     var doesAccept = function (incomingType, outgoingType) {
-        //TODO refine using accepts of datatypes in Module
-        //for now: always accept "nodox.core.any"
-        if (incomingType === "nodox.modules.core.any" || outgoingType === "nodox.modules.core.any")
+        // TODO refine using accepts of datatypes in Module
+        // for now: always accept "nodox.core.any"
+        if (incomingType === 'nodox.modules.core.any' || outgoingType === 'nodox.modules.core.any')
             return true;
         if (outgoingType === incomingType)
             return true;
@@ -171,11 +168,11 @@ var createService = function (getId) {
             dataType: inputDefinition.dataType,
             name: inputDefinition.name,
             definitionFullName: definition.fullName,
-            connectionId: interfaces_1.ConnectorType.input
+            connectionId: types_1.ConnectorType.input
         }); }; };
         var toOutputConnector = function (nodeId) { return function (outputDefinition) { return ({
             id: getId(),
-            connectorType: interfaces_1.ConnectorType.output,
+            connectorType: types_1.ConnectorType.output,
             dataType: outputDefinition.dataType,
             nodeId: nodeId
         }); }; };
@@ -186,7 +183,7 @@ var createService = function (getId) {
             definitionFullName: definition.fullName,
             inputs: definition.inputs.map(toInputConnector(id)),
             outputs: definition.outputs.map(toOutputConnector(id)),
-            icon: definition.icon,
+            icon: definition.icon
         };
         document.nodes.push(node);
         return node;
@@ -203,7 +200,7 @@ var createService = function (getId) {
         });
         document.nodes.splice(document.nodes.indexOf(node), 1);
     };
-    return {
+    var service = {
         getConnections: getConnections,
         getDefinition: getDefinition,
         addNode: addNode,
@@ -224,5 +221,6 @@ var createService = function (getId) {
         registerModule: registerModule,
         removeConnection: removeConnection
     };
+    return service;
 };
-exports.createService = createService;
+exports.create = create;
