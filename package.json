@@ -5,7 +5,7 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "scripts": {
-    "generate-schemas": "typescript-json-schema ./tsconfig.json \"*\" --include src/types/core-interfaces.ts --useTypeOfKeyword --out src/schemas/generated.schema.json",
+    "generate-schemas": "typescript-json-schema ./tsconfig.json \"*\" --include src/types/core.ts --useTypeOfKeyword --out src/schemas/generated.schema.json",
     "lint": "eslint . --ext .ts,.tsx",
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "test": "jest",

@@ -173,7 +173,7 @@ export interface NodoxDocument {
     id: string;
     name: string;
     description?: string;
-    metaData: Lookup<unknown>
+    metaData?: Lookup<unknown>;
     nodes: Array<NodoxNode>;
     connections: Array<Connection>;
     author?: string;

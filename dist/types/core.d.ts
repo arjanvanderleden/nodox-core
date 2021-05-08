@@ -1,3 +1,4 @@
+import { Lookup } from '.';
 import { NodoxRunningContext } from './nodox-runner';
 export declare enum ConnectorType {
     input = "input",
@@ -153,6 +154,7 @@ export interface NodoxDocument {
     id: string;
     name: string;
     description?: string;
+    metaData?: Lookup<unknown>;
     nodes: Array<NodoxNode>;
     connections: Array<Connection>;
     author?: string;
