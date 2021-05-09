@@ -169,7 +169,7 @@ var create = function (getId) {
             dataType: inputDefinition.dataType,
             name: inputDefinition.name,
             definitionFullName: definition.fullName,
-            connectionId: types_1.ConnectorType.input
+            connectorType: types_1.ConnectorType.input
         }); }; };
         var toOutputConnector = function (nodeId) { return function (outputDefinition) { return ({
             id: getId(),

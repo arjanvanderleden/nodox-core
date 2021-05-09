@@ -179,7 +179,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
       dataType: inputDefinition.dataType,
       name: inputDefinition.name,
       definitionFullName: definition.fullName,
-      connectionId: ConnectorType.input
+      connectorType: ConnectorType.input
     } as InputConnector);
 
     const toOutputConnector = (nodeId: string) => (outputDefinition: OutputDefinition) => ({
