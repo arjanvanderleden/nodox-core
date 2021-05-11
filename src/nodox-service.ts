@@ -89,7 +89,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
       ? { inputConnector: firstConnector, outputConnector: secondConnector }
       : { inputConnector: secondConnector, outputConnector: firstConnector };
 
-    if (outputConnector.connectionId !== ConnectorType.output || !canAcceptConnection(outputConnector, inputConnector)) {
+    if (outputConnector.connectorType !== ConnectorType.output || !canAcceptConnection(outputConnector, inputConnector)) {
       return undefined;
     }
 

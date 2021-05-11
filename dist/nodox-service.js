@@ -81,7 +81,7 @@ var create = function (getId) {
         var _a = firstConnector.connectorType === types_1.ConnectorType.input
             ? { inputConnector: firstConnector, outputConnector: secondConnector }
             : { inputConnector: secondConnector, outputConnector: firstConnector }, inputConnector = _a.inputConnector, outputConnector = _a.outputConnector;
-        if (outputConnector.connectionId !== types_1.ConnectorType.output || !canAcceptConnection(outputConnector, inputConnector)) {
+        if (outputConnector.connectorType !== types_1.ConnectorType.output || !canAcceptConnection(outputConnector, inputConnector)) {
             return undefined;
         }
         var currentInputConnections = document
