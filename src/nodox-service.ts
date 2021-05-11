@@ -84,28 +84,32 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
     }
   };
 
-  const connect = (document: NodoxDocument, inputConnector: InputConnector, outputConnector: OutputConnector) => {
-    if (canAcceptConnection(outputConnector, inputConnector)) {
-      const currentInputConnections = document
-        .connections
-        .filter(connection => connection.inputConnectorId === inputConnector.id)
-        .map(connection => connection.id);
+  const connect = (document: NodoxDocument, firstConnector: Connector, secondConnector: Connector) => {
+    const { inputConnector, outputConnector } = firstConnector.connectorType === ConnectorType.input
+      ? { inputConnector: firstConnector, outputConnector: secondConnector }
+      : { inputConnector: secondConnector, outputConnector: firstConnector };
 
-      const connection: Connection = {
-        id: getId(),
-        inputConnectorId: inputConnector.id,
-        outputConnectorId: outputConnector.id
-      };
-
-      inputConnector.connectionId = connection.id;
-      currentInputConnections.forEach(id => {
-        removeConnection(document, id);
-      });
-      document.connections.push(connection);
-      return connection;
-    } else {
+    if (outputConnector.connectionId !== ConnectorType.output || !canAcceptConnection(outputConnector, inputConnector)) {
       return undefined;
     }
+
+    const currentInputConnections = document
+      .connections
+      .filter(connection => connection.inputConnectorId === inputConnector.id)
+      .map(connection => connection.id);
+
+    const connection: Connection = {
+      id: getId(),
+      inputConnectorId: inputConnector.id,
+      outputConnectorId: outputConnector.id
+    };
+
+    inputConnector.connectionId = connection.id;
+    currentInputConnections.forEach(id => {
+      removeConnection(document, id);
+    });
+    document.connections.push(connection);
+    return connection;
   };
 
   const createNewDocument = <T>(metaData?: T) => {

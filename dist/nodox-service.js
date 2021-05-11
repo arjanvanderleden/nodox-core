@@ -77,27 +77,28 @@ var create = function (getId) {
             }
         }
     };
-    var connect = function (document, inputConnector, outputConnector) {
-        if (canAcceptConnection(outputConnector, inputConnector)) {
-            var currentInputConnections = document
-                .connections
-                .filter(function (connection) { return connection.inputConnectorId === inputConnector.id; })
-                .map(function (connection) { return connection.id; });
-            var connection = {
-                id: getId(),
-                inputConnectorId: inputConnector.id,
-                outputConnectorId: outputConnector.id
-            };
-            inputConnector.connectionId = connection.id;
-            currentInputConnections.forEach(function (id) {
-                removeConnection(document, id);
-            });
-            document.connections.push(connection);
-            return connection;
-        }
-        else {
+    var connect = function (document, firstConnector, secondConnector) {
+        var _a = firstConnector.connectorType === types_1.ConnectorType.input
+            ? { inputConnector: firstConnector, outputConnector: secondConnector }
+            : { inputConnector: secondConnector, outputConnector: firstConnector }, inputConnector = _a.inputConnector, outputConnector = _a.outputConnector;
+        if (outputConnector.connectionId !== types_1.ConnectorType.output || !canAcceptConnection(outputConnector, inputConnector)) {
             return undefined;
         }
+        var currentInputConnections = document
+            .connections
+            .filter(function (connection) { return connection.inputConnectorId === inputConnector.id; })
+            .map(function (connection) { return connection.id; });
+        var connection = {
+            id: getId(),
+            inputConnectorId: inputConnector.id,
+            outputConnectorId: outputConnector.id
+        };
+        inputConnector.connectionId = connection.id;
+        currentInputConnections.forEach(function (id) {
+            removeConnection(document, id);
+        });
+        document.connections.push(connection);
+        return connection;
     };
     var createNewDocument = function (metaData) {
         var newDocument = {
