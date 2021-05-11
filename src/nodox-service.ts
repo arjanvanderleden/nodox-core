@@ -47,7 +47,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
   };
 
   const getOutput = (document: NodoxDocument, outputId: string) => {
-    const node = document.nodes.find(node => node.inputs.find(byId(outputId)) !== undefined);
+    const node = document.nodes.find(node => node.outputs.find(byId(outputId)) !== undefined);
     return { node, connector: node?.outputs.find(byId(outputId)) };
   };
 
