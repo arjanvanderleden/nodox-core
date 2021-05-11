@@ -45,7 +45,7 @@ var create = function (getId) {
         return { node: node, connector: node === null || node === void 0 ? void 0 : node.inputs.find(byId(inputId)) };
     };
     var getOutput = function (document, outputId) {
-        var node = document.nodes.find(function (node) { return node.inputs.find(byId(outputId)) !== undefined; });
+        var node = document.nodes.find(function (node) { return node.outputs.find(byId(outputId)) !== undefined; });
         return { node: node, connector: node === null || node === void 0 ? void 0 : node.outputs.find(byId(outputId)) };
     };
     var getConnector = function (document, id) {
