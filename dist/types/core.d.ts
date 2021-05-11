@@ -1,3 +1,4 @@
+import { Lookup } from '.';
 import { NodoxRunningContext } from './nodox-runner';
 export declare enum ConnectorType {
     input = "input",
@@ -57,6 +58,16 @@ export interface NodoxService {
      * @param id id of connector
      * @returns {connector: the connector, node: the node this connector belongs to }
      */
+    getConnector(document: NodoxDocument, id: string): {
+        connector?: Connector;
+        node?: NodoxNode;
+    };
+    /**
+     *
+     * @param document
+     * @param id id of connector
+     * @returns {connector: the input connector, node: the node this connector belongs to }
+     */
     getInput(document: NodoxDocument, id: string): {
         connector?: Connector;
         node?: NodoxNode;
@@ -65,7 +76,7 @@ export interface NodoxService {
      *
      * @param document
      * @param id id of connector
-     * @returns {connector: the connector, node: the node this connector belongs to }
+     * @returns {connector: the output connector, node: the node this connector belongs to }
      */
     getOutput(document: NodoxDocument, id: string): {
         connector?: Connector;
@@ -207,6 +218,6 @@ export interface NodeValues {
     minLength: number;
     values: unknown;
 }
-export declare type ProcessFunction = (context: NodoxRunningContext, result: NodeValues, inputParams: unknown, index: number) => void;
+export declare type ProcessFunction = (context: NodoxRunningContext, result: Lookup<any>, inputParams: unknown, index: number) => void;
 export declare type PreprocessFunction = (context: NodoxRunningContext) => void;
 export declare type PostprocessFunction = (context: NodoxRunningContext, result: NodeValues) => void;

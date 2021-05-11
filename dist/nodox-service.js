@@ -42,11 +42,15 @@ var create = function (getId) {
     var getConnection = function (document, connectionId) { return document.connections.find(byId(connectionId)); };
     var getInput = function (document, inputId) {
         var node = document.nodes.find(function (node) { return node.inputs.find(byId(inputId)) !== undefined; });
-        return { node: node, input: node === null || node === void 0 ? void 0 : node.inputs.find(byId(inputId)) };
+        return { node: node, connector: node === null || node === void 0 ? void 0 : node.inputs.find(byId(inputId)) };
     };
     var getOutput = function (document, outputId) {
         var node = document.nodes.find(function (node) { return node.inputs.find(byId(outputId)) !== undefined; });
-        return { node: node, output: node === null || node === void 0 ? void 0 : node.outputs.find(byId(outputId)) };
+        return { node: node, connector: node === null || node === void 0 ? void 0 : node.outputs.find(byId(outputId)) };
+    };
+    var getConnector = function (document, id) {
+        var _a = getInput(document, id), node = _a.node, connector = _a.connector;
+        return connector !== undefined ? { node: node, connector: connector } : getOutput(document, id);
     };
     var indexOfConnector = function (node, connector) {
         var index = node.inputs.findIndex(byId(connector.id));
@@ -59,11 +63,11 @@ var create = function (getId) {
     var removeConnection = function (document, connectionId) {
         var connection = getConnection(document, connectionId);
         if (connection !== undefined) {
-            var input = getInput(document, connection.inputConnectorId).input;
+            var input = getInput(document, connection.inputConnectorId).connector;
             if (input !== undefined) {
                 delete input.connectionId;
             }
-            var output = getOutput(document, connection.outputConnectorId).output;
+            var output = getOutput(document, connection.outputConnectorId).connector;
             if (output !== undefined) {
                 delete output.connectionId;
             }
@@ -144,7 +148,7 @@ var create = function (getId) {
     };
     var getConnections = function (document) { return document.connections; };
     var getNodes = function (document) { return document.nodes; };
-    var doesAccept = function (incomingType, outgoingType) {
+    var doesAcceptDataType = function (incomingType, outgoingType) {
         // TODO refine using accepts of datatypes in Module
         // for now: always accept "nodox.core.any"
         if (incomingType === 'nodox.modules.core.any' || outgoingType === 'nodox.modules.core.any')
@@ -160,7 +164,7 @@ var create = function (getId) {
             return false;
         if (sourceConnector.dataType === targetConnector.dataType)
             return true;
-        return doesAccept(sourceConnector.dataType, targetConnector.dataType);
+        return doesAcceptDataType(sourceConnector.dataType, targetConnector.dataType);
     };
     var addNode = function (document, definition) {
         var toInputConnector = function (nodeId) { return function (inputDefinition) { return ({
@@ -211,6 +215,7 @@ var create = function (getId) {
         deleteNode: deleteNode,
         deleteNodes: deleteNodes,
         fromJson: fromJson,
+        getConnector: getConnector,
         getInput: getInput,
         getModules: getModules,
         getNode: getNode,

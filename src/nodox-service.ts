@@ -43,12 +43,17 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
 
   const getInput = (document: NodoxDocument, inputId: string) => {
     const node = document.nodes.find(node => node.inputs.find(byId(inputId)) !== undefined);
-    return { node, input: node?.inputs.find(byId(inputId)) };
+    return { node, connector: node?.inputs.find(byId(inputId)) };
   };
 
   const getOutput = (document: NodoxDocument, outputId: string) => {
     const node = document.nodes.find(node => node.inputs.find(byId(outputId)) !== undefined);
-    return { node, output: node?.outputs.find(byId(outputId)) };
+    return { node, connector: node?.outputs.find(byId(outputId)) };
+  };
+
+  const getConnector = (document: NodoxDocument, id: string) => {
+    const { node, connector } = getInput(document, id);
+    return connector !== undefined ? { node, connector } : getOutput(document, id);
   };
 
   const indexOfConnector = (node: NodoxNode, connector: Connector) => {
@@ -64,11 +69,11 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
   const removeConnection = (document: NodoxDocument, connectionId: string) => {
     const connection = getConnection(document, connectionId);
     if (connection !== undefined) {
-      const { input } = getInput(document, connection.inputConnectorId);
+      const { connector: input } = getInput(document, connection.inputConnectorId);
       if (input !== undefined) {
         delete input.connectionId;
       }
-      const { output } = getOutput(document, connection.outputConnectorId);
+      const { connector: output } = getOutput(document, connection.outputConnectorId);
       if (output !== undefined) {
         delete output.connectionId;
       }
@@ -157,7 +162,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
 
   const getNodes = (document: NodoxDocument) => document.nodes;
 
-  const doesAccept = (incomingType: string, outgoingType: string) => {
+  const doesAcceptDataType = (incomingType: string, outgoingType: string) => {
     // TODO refine using accepts of datatypes in Module
     // for now: always accept "nodox.core.any"
     if (incomingType === 'nodox.modules.core.any' || outgoingType === 'nodox.modules.core.any') return true;
@@ -169,7 +174,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
     if (sourceConnector.connectorType === targetConnector.connectorType) return false;
     if (sourceConnector.nodeId === targetConnector.nodeId) return false;
     if (sourceConnector.dataType === targetConnector.dataType) return true;
-    return doesAccept(sourceConnector.dataType, targetConnector.dataType);
+    return doesAcceptDataType(sourceConnector.dataType, targetConnector.dataType);
   };
 
   const addNode = (document: NodoxDocument, definition: NodoxNodeDefinition) => {
@@ -228,6 +233,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
     deleteNode,
     deleteNodes,
     fromJson,
+    getConnector,
     getInput,
     getModules,
     getNode,
