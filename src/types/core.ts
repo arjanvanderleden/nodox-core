@@ -47,7 +47,7 @@ export interface NodoxService {
      * @param inputConnector
      * @param outputConnector
      */
-    connect(document: NodoxDocument, inputConnector: InputConnector, outputConnector: OutputConnector): Connection | undefined;
+     connect(document: NodoxDocument, firstConnector: Connector, secondConnector: Connector): Connection | undefined;
 
     /**
      * Return true if source and target connector match with respect to dataType
