@@ -93,10 +93,11 @@ var create = function (getId) {
             inputConnectorId: inputConnector.id,
             outputConnectorId: outputConnector.id
         };
-        inputConnector.connectionId = connection.id;
         currentInputConnections.forEach(function (id) {
             removeConnection(document, id);
         });
+        inputConnector.connectionId = connection.id;
+        outputConnector.connectionId = connection.id;
         document.connections.push(connection);
         return connection;
     };

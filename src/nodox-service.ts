@@ -104,10 +104,11 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
       outputConnectorId: outputConnector.id
     };
 
-    inputConnector.connectionId = connection.id;
     currentInputConnections.forEach(id => {
       removeConnection(document, id);
     });
+    inputConnector.connectionId = connection.id;
+    outputConnector.connectionId = connection.id;
     document.connections.push(connection);
     return connection;
   };
