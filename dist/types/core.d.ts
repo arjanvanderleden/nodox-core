@@ -128,7 +128,6 @@ export interface Connector {
     label: string;
     dataType: string;
     connectorType: ConnectorType;
-    connectionId?: string;
     nodeId: string;
 }
 /**
@@ -139,11 +138,13 @@ export interface OutputConnector extends Connector {
 }
 /**
  * A Connector of type input that can connect to a Connector of type output
+ * only input connectors have a connectorId property (one connection per input)
  */
 export interface InputConnector extends Connector {
     connectorType: ConnectorType.input;
     value?: unknown;
     definitionFullName: string;
+    connectionId?: string;
 }
 /**
  * An element in the document that holds inputs that provide input data

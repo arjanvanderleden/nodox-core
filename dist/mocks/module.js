@@ -37,6 +37,28 @@ var DemoModule = /** @class */ (function () {
                     }],
                 icon: 'nodox:core_nodox',
                 fullName: this.namespace + '.identity'
+            },
+            {
+                name: 'to string',
+                description: 'creates a string of the input',
+                processFunction: function (context, result, inputParams, index) {
+                    result.b = result.b || [];
+                    var a = String(inputParams.a);
+                    result.b.push(a);
+                },
+                inputs: [{
+                        name: 'a',
+                        description: 'input ',
+                        dataType: this.namespace + '.any',
+                        defaultValue: 0
+                    }],
+                outputs: [{
+                        name: 'b',
+                        description: 'The string value of input a',
+                        dataType: this.namespace + '.string'
+                    }],
+                icon: 'nodox:core_nodox',
+                fullName: this.namespace + '.tostring'
             }
         ];
     }

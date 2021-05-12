@@ -73,10 +73,6 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
       if (input !== undefined) {
         delete input.connectionId;
       }
-      const { connector: output } = getOutput(document, connection.outputConnectorId);
-      if (output !== undefined) {
-        delete output.connectionId;
-      }
       const index = document.connections.indexOf(connection);
       if (index > -1) {
         document.connections.splice(index, 1);
@@ -85,13 +81,20 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
   };
 
   const connect = (document: NodoxDocument, firstConnector: Connector, secondConnector: Connector) => {
-    const { inputConnector, outputConnector } = firstConnector.connectorType === ConnectorType.input
+    if (!canAcceptConnection(firstConnector, secondConnector)) {
+      return undefined;
+    }
+
+    const connectorPair = firstConnector.connectorType === ConnectorType.input
       ? { inputConnector: firstConnector, outputConnector: secondConnector }
       : { inputConnector: secondConnector, outputConnector: firstConnector };
 
-    if (outputConnector.connectorType !== ConnectorType.output || !canAcceptConnection(outputConnector, inputConnector)) {
+    if (connectorPair.outputConnector.connectorType !== ConnectorType.output) {
       return undefined;
     }
+
+    const inputConnector = connectorPair.inputConnector as InputConnector;
+    const outputConnector = connectorPair.outputConnector as OutputConnector;
 
     const currentInputConnections = document
       .connections
@@ -108,7 +111,6 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
       removeConnection(document, id);
     });
     inputConnector.connectionId = connection.id;
-    outputConnector.connectionId = connection.id;
     document.connections.push(connection);
     return connection;
   };
@@ -172,6 +174,13 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
     // for now: always accept "nodox.core.any"
     if (incomingType === 'nodox.modules.core.any' || outgoingType === 'nodox.modules.core.any') return true;
     if (outgoingType === incomingType) return true;
+    const sourceStrings = incomingType.split('.').reverse();
+    const targetStrings = outgoingType.split('.').reverse();
+    if (sourceStrings[0] === 'any' || targetStrings[0] === 'any') {
+      if (sourceStrings.slice(1).join('.') === targetStrings.slice(1).join('.')) {
+        return true;
+      }
+    }
     return false;
   };
 
@@ -213,21 +222,22 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
   };
 
   const deleteNodes = (document: NodoxDocument, nodes: Array<NodoxNode>) => {
-    nodes.forEach(n => deleteNode(document, n));
+    nodes.forEach(node => deleteNode(document, node));
   };
 
   const deleteNode = (document: NodoxDocument, node: NodoxNode) => {
-    document.connections.filter(connection =>
-      [
-        ...node.inputs.map(input => input.connectionId),
-        ...node.outputs.map(output => output.connectionId)
-      ]
-        .includes(connection.id))
-      .forEach(connection => {
-        removeConnection(document, connection.id);
-      });
+    const isConnected = (connection: Connection) => node
+      .inputs
+      .map(input => input.connectionId)
+      .includes(connection.id);
+    const remove = (connection: Connection) => removeConnection(document, connection.id);
+
+    document.connections
+      .filter(isConnected)
+      .forEach(remove);
     document.nodes.splice(document.nodes.indexOf(node), 1);
   };
+
   const service: NodoxService = {
     getConnections,
     getDefinition,

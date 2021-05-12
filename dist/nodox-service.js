@@ -1,9 +1,4 @@
 "use strict";
-var __spreadArray = (this && this.__spreadArray) || function (to, from) {
-    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
-        to[j] = from[i];
-    return to;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.create = exports.uuidIdProvider = void 0;
 var uuid_1 = require("uuid");
@@ -67,10 +62,6 @@ var create = function (getId) {
             if (input !== undefined) {
                 delete input.connectionId;
             }
-            var output = getOutput(document, connection.outputConnectorId).connector;
-            if (output !== undefined) {
-                delete output.connectionId;
-            }
             var index = document.connections.indexOf(connection);
             if (index > -1) {
                 document.connections.splice(index, 1);
@@ -78,12 +69,17 @@ var create = function (getId) {
         }
     };
     var connect = function (document, firstConnector, secondConnector) {
-        var _a = firstConnector.connectorType === types_1.ConnectorType.input
-            ? { inputConnector: firstConnector, outputConnector: secondConnector }
-            : { inputConnector: secondConnector, outputConnector: firstConnector }, inputConnector = _a.inputConnector, outputConnector = _a.outputConnector;
-        if (outputConnector.connectorType !== types_1.ConnectorType.output || !canAcceptConnection(outputConnector, inputConnector)) {
+        if (!canAcceptConnection(firstConnector, secondConnector)) {
             return undefined;
         }
+        var connectorPair = firstConnector.connectorType === types_1.ConnectorType.input
+            ? { inputConnector: firstConnector, outputConnector: secondConnector }
+            : { inputConnector: secondConnector, outputConnector: firstConnector };
+        if (connectorPair.outputConnector.connectorType !== types_1.ConnectorType.output) {
+            return undefined;
+        }
+        var inputConnector = connectorPair.inputConnector;
+        var outputConnector = connectorPair.outputConnector;
         var currentInputConnections = document
             .connections
             .filter(function (connection) { return connection.inputConnectorId === inputConnector.id; })
@@ -97,7 +93,6 @@ var create = function (getId) {
             removeConnection(document, id);
         });
         inputConnector.connectionId = connection.id;
-        outputConnector.connectionId = connection.id;
         document.connections.push(connection);
         return connection;
     };
@@ -157,6 +152,13 @@ var create = function (getId) {
             return true;
         if (outgoingType === incomingType)
             return true;
+        var sourceStrings = incomingType.split('.').reverse();
+        var targetStrings = outgoingType.split('.').reverse();
+        if (sourceStrings[0] === 'any' || targetStrings[0] === 'any') {
+            if (sourceStrings.slice(1).join('.') === targetStrings.slice(1).join('.')) {
+                return true;
+            }
+        }
         return false;
     };
     var canAcceptConnection = function (sourceConnector, targetConnector) {
@@ -196,15 +198,17 @@ var create = function (getId) {
         return node;
     };
     var deleteNodes = function (document, nodes) {
-        nodes.forEach(function (n) { return deleteNode(document, n); });
+        nodes.forEach(function (node) { return deleteNode(document, node); });
     };
     var deleteNode = function (document, node) {
-        document.connections.filter(function (connection) {
-            return __spreadArray(__spreadArray([], node.inputs.map(function (input) { return input.connectionId; })), node.outputs.map(function (output) { return output.connectionId; })).includes(connection.id);
-        })
-            .forEach(function (connection) {
-            removeConnection(document, connection.id);
-        });
+        var isConnected = function (connection) { return node
+            .inputs
+            .map(function (input) { return input.connectionId; })
+            .includes(connection.id); };
+        var remove = function (connection) { return removeConnection(document, connection.id); };
+        document.connections
+            .filter(isConnected)
+            .forEach(remove);
         document.nodes.splice(document.nodes.indexOf(node), 1);
     };
     var service = {

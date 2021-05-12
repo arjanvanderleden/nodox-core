@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any @typescript-eslint/no-unused-vars @typescript-eslint/no-empty-function */
-
 import { create, uuidIdProvider } from './nodox-service';
 import { DemoModule } from './mocks/module';
 
@@ -104,14 +102,87 @@ describe('NodoxService: getConnections', () => {
     const document = service.createNewDocument();
     // eslint-disable-next-line no-unused-vars
     const connections = service.getConnections(document);
-    expect(Array.isArray(service.getConnections(document))).toBe(true);
-    expect(service.getConnections(document).length).toBe(0);
+    expect(Array.isArray(connections)).toBe(true);
+    expect(connections.length).toBe(0);
+  });
+});
+
+const createBasicDocument = () => {
+  const service = create(uuidIdProvider);
+  const module = new DemoModule();
+  service.registerModule(module);
+  const document = service.createNewDocument();
+  const identityDefinition = service.getDefinition('nodox.modules.mock.identity');
+  const toStringDefinition = service.getDefinition('nodox.modules.mock.tostring');
+  const iNode1 = service.addNode(document, identityDefinition);
+  const iNode2 = service.addNode(document, identityDefinition);
+  const sNode1 = service.addNode(document, toStringDefinition);
+  const sNode2 = service.addNode(document, toStringDefinition);
+  return { service, document, iNode1, iNode2, sNode1, sNode2 };
+};
+
+describe('createBasicDoument', () => {
+  it('creates a document', () => {
+    const { document, iNode1, iNode2, sNode1, sNode2 } = createBasicDocument();
+    expect(document).toBeDefined();
+    expect(document.nodes.length).toBe(4);
+
+    expect(iNode1.inputs[0].dataType).toBe('nodox.modules.mock.number');
+    expect(iNode1.outputs[0].dataType).toBe('nodox.modules.mock.number');
+    expect(iNode2.inputs[0].dataType).toBe('nodox.modules.mock.number');
+    expect(iNode2.outputs[0].dataType).toBe('nodox.modules.mock.number');
+    expect(sNode1.inputs[0].dataType).toBe('nodox.modules.mock.any');
+    expect(sNode1.outputs[0].dataType).toBe('nodox.modules.mock.string');
+    expect(sNode2.inputs[0].dataType).toBe('nodox.modules.mock.any');
+    expect(sNode2.outputs[0].dataType).toBe('nodox.modules.mock.string');
   });
 });
 
 describe('NodoxService: connect', () => {
   it('creates one connection', () => {
+    const { document, service, iNode1, sNode1 } = createBasicDocument();
+    service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    const connection2 = service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    expect(connection2).toBeDefined();
+    expect(sNode1.inputs[0].connectionId).toBe(connection2!.id);
+    expect(connection2!.inputConnectorId).toBe(sNode1.inputs[0].id);
+    expect(connection2!.outputConnectorId).toBe(iNode1.outputs[0].id);
 
+    expect(document.connections.length).toBe(1);
+    expect(document.connections[0].id).toBe(connection2!.id);
+  });
+
+  it('creates only one connection per input', () => {
+    const { document, service, iNode1, iNode2, sNode1 } = createBasicDocument();
+    const connection = service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    expect(connection).toBeDefined();
+    expect(sNode1.inputs[0].connectionId).toBe(connection!.id);
+    expect(connection!.inputConnectorId).toBe(sNode1.inputs[0].id);
+    expect(connection!.outputConnectorId).toBe(iNode1.outputs[0].id);
+
+    const connection2 = service.connect(document, iNode2.outputs[0], sNode1.inputs[0]);
+    expect(connection2).toBeDefined();
+    expect(sNode1.inputs[0].connectionId).toBe(connection2!.id);
+    expect(connection2!.inputConnectorId).toBe(sNode1.inputs[0].id);
+    expect(connection2!.outputConnectorId).toBe(iNode2.outputs[0].id);
+
+    expect(document.connections.length).toBe(1);
+    expect(document.connections[0].id).toBe(connection2!.id);
+  });
+
+  it('creates multiple connections per output', () => {
+    const { service, document, iNode1, sNode1, sNode2 } = createBasicDocument();
+    const connection1 = service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    const connection2 = service.connect(document, iNode1.outputs[0], sNode2.inputs[0]);
+    expect(connection1).toBeDefined();
+    expect(connection2).toBeDefined();
+
+    expect(sNode1.inputs[0].connectionId).toBe(connection1!.id);
+    expect(sNode2.inputs[0].connectionId).toBe(connection2!.id);
+    expect(connection1!.inputConnectorId).toBe(sNode1.inputs[0].id);
+    expect(connection2!.inputConnectorId).toBe(sNode2.inputs[0].id);
+
+    expect(document.connections.length).toBe(2);
   });
 });
 
