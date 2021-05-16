@@ -1,11 +1,20 @@
 "use strict";
+var __spreadArray = (this && this.__spreadArray) || function (to, from) {
+    for (var i = 0, il = from.length, j = to.length; i < il; i++, j++)
+        to[j] = from[i];
+    return to;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.create = exports.uuidIdProvider = void 0;
+exports.create = exports.REASON_CIRCULAR_DEPENDENCY = exports.REASON_DATATYPE_MISMATCH = exports.REASON_IDENTICAL_PARENT_NODE = exports.REASON_IDENTICAL_CONNECTOR_TYPES = exports.uuidIdProvider = void 0;
 var uuid_1 = require("uuid");
 var types_1 = require("./types");
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 var uuidIdProvider = function () { return uuid_1.v4(); };
 exports.uuidIdProvider = uuidIdProvider;
+exports.REASON_IDENTICAL_CONNECTOR_TYPES = 'identical connector types';
+exports.REASON_IDENTICAL_PARENT_NODE = 'identical parent node';
+exports.REASON_DATATYPE_MISMATCH = 'dataTypes do not match';
+exports.REASON_CIRCULAR_DEPENDENCY = 'circular dependency';
 var create = function (getId) {
     var modules = [];
     var getDefinitionLookup = function () { return modules.reduce(function (definitionLookup, module) {
@@ -20,7 +29,7 @@ var create = function (getId) {
             definition.icon = definition.icon || 'nodox:core_nodox';
             var existingDef = getDefinition(definition.fullName);
             if (existingDef) {
-                throw new Error("duplicate definition (" + definition.fullName + "): " + module.name + " and " + existingDef.moduleName);
+                throw new Error("duplicate definition (" + definition.fullName + "): " + module.name);
             }
         });
         var moduleNameSpaces = modules.map(function (m) { return m.namespace; });
@@ -35,6 +44,21 @@ var create = function (getId) {
     var byId = function (id) { return function (item) { return id === item.id; }; };
     var getNode = function (document, nodeId) { return document.nodes.find(byId(nodeId)); };
     var getConnection = function (document, connectionId) { return document.connections.find(byId(connectionId)); };
+    var getUpstreamNodeIds = function (document, nodeId) {
+        var toUpstreamNodeIds = function (list, input) {
+            var outputNodeId = getConnection(document, input.connectionId).outputNodeId;
+            var result = __spreadArray(__spreadArray(__spreadArray([], list), [outputNodeId]), getUpstreamNodeIds(document, outputNodeId));
+            return result;
+        };
+        var hasConnection = function (input) { return input.connectionId !== undefined; };
+        var node = getNode(document, nodeId);
+        return node === undefined
+            ? []
+            : node
+                .inputs
+                .filter(hasConnection)
+                .reduce(toUpstreamNodeIds, []);
+    };
     var getInput = function (document, inputId) {
         var node = document.nodes.find(function (node) { return node.inputs.find(byId(inputId)) !== undefined; });
         return { node: node, connector: node === null || node === void 0 ? void 0 : node.inputs.find(byId(inputId)) };
@@ -68,33 +92,62 @@ var create = function (getId) {
             }
         }
     };
+    var connectorPair = function (firstConnector, secondConnector) {
+        if (firstConnector.connectorType === secondConnector.connectorType) {
+            return {};
+        }
+        var _a = firstConnector.connectorType === types_1.ConnectorType.input
+            ? [firstConnector, secondConnector]
+            : [secondConnector, firstConnector], inputConnector = _a[0], outputConnector = _a[1];
+        return { inputConnector: inputConnector, outputConnector: outputConnector };
+    };
+    var doesAcceptDataType = function (inputType, outputType) {
+        var inputPathSegments = inputType.split('.').reverse();
+        var outputPathSegments = outputType.split('.').reverse();
+        var lastPathIsAny = inputPathSegments[0] === 'any' || outputPathSegments[0] === 'any';
+        var restPathsAreEqual = inputPathSegments.slice(1).join('.') === outputPathSegments.slice(1).join('.');
+        switch (true) {
+            case inputType === 'nodox.modules.core.any' || outputType === 'nodox.modules.core.any': return true;
+            case outputType === inputType: return true;
+            case lastPathIsAny && restPathsAreEqual: return true;
+            default: return false;
+        }
+    };
+    var canAcceptConnection = function (document, firstConnector, secondConnector) {
+        var _a = connectorPair(firstConnector, secondConnector), input = _a.inputConnector, output = _a.outputConnector;
+        switch (true) {
+            case input === undefined || output === undefined: return { canConnect: false, reason: exports.REASON_IDENTICAL_CONNECTOR_TYPES };
+            case input.nodeId === output.nodeId: return { canConnect: false, reason: exports.REASON_IDENTICAL_PARENT_NODE };
+            case !doesAcceptDataType(input.dataType, output.dataType): return { canConnect: false, reason: exports.REASON_DATATYPE_MISMATCH };
+            case getUpstreamNodeIds(document, output.nodeId).includes(input.nodeId): return { canConnect: false, reason: exports.REASON_CIRCULAR_DEPENDENCY };
+        }
+        return { canConnect: true };
+    };
     var connect = function (document, firstConnector, secondConnector) {
-        if (!canAcceptConnection(firstConnector, secondConnector)) {
-            return undefined;
+        var _a = connectorPair(firstConnector, secondConnector), input = _a.inputConnector, output = _a.outputConnector;
+        if (input !== undefined && output !== undefined) {
+            var canConnect = canAcceptConnection(document, input, output).canConnect;
+            if (!canConnect) {
+                return undefined;
+            }
+            var currentInputConnections = document
+                .connections
+                .filter(function (connection) { return connection.inputConnectorId === input.id; })
+                .map(function (connection) { return connection.id; });
+            var connection = {
+                id: getId(),
+                inputConnectorId: input.id,
+                outputConnectorId: output.id,
+                inputNodeId: input.nodeId,
+                outputNodeId: output.nodeId
+            };
+            currentInputConnections.forEach(function (id) {
+                removeConnection(document, id);
+            });
+            input.connectionId = connection.id;
+            document.connections.push(connection);
+            return connection;
         }
-        var connectorPair = firstConnector.connectorType === types_1.ConnectorType.input
-            ? { inputConnector: firstConnector, outputConnector: secondConnector }
-            : { inputConnector: secondConnector, outputConnector: firstConnector };
-        if (connectorPair.outputConnector.connectorType !== types_1.ConnectorType.output) {
-            return undefined;
-        }
-        var inputConnector = connectorPair.inputConnector;
-        var outputConnector = connectorPair.outputConnector;
-        var currentInputConnections = document
-            .connections
-            .filter(function (connection) { return connection.inputConnectorId === inputConnector.id; })
-            .map(function (connection) { return connection.id; });
-        var connection = {
-            id: getId(),
-            inputConnectorId: inputConnector.id,
-            outputConnectorId: outputConnector.id
-        };
-        currentInputConnections.forEach(function (id) {
-            removeConnection(document, id);
-        });
-        inputConnector.connectionId = connection.id;
-        document.connections.push(connection);
-        return connection;
     };
     var createNewDocument = function (metaData) {
         var newDocument = {
@@ -145,31 +198,6 @@ var create = function (getId) {
     };
     var getConnections = function (document) { return document.connections; };
     var getNodes = function (document) { return document.nodes; };
-    var doesAcceptDataType = function (incomingType, outgoingType) {
-        // TODO refine using accepts of datatypes in Module
-        // for now: always accept "nodox.core.any"
-        if (incomingType === 'nodox.modules.core.any' || outgoingType === 'nodox.modules.core.any')
-            return true;
-        if (outgoingType === incomingType)
-            return true;
-        var sourceStrings = incomingType.split('.').reverse();
-        var targetStrings = outgoingType.split('.').reverse();
-        if (sourceStrings[0] === 'any' || targetStrings[0] === 'any') {
-            if (sourceStrings.slice(1).join('.') === targetStrings.slice(1).join('.')) {
-                return true;
-            }
-        }
-        return false;
-    };
-    var canAcceptConnection = function (sourceConnector, targetConnector) {
-        if (sourceConnector.connectorType === targetConnector.connectorType)
-            return false;
-        if (sourceConnector.nodeId === targetConnector.nodeId)
-            return false;
-        if (sourceConnector.dataType === targetConnector.dataType)
-            return true;
-        return doesAcceptDataType(sourceConnector.dataType, targetConnector.dataType);
-    };
     var addNode = function (document, definition) {
         var toInputConnector = function (nodeId) { return function (inputDefinition) { return ({
             id: getId(),

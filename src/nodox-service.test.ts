@@ -1,4 +1,4 @@
-import { create, uuidIdProvider } from './nodox-service';
+import { create, REASON_CIRCULAR_DEPENDENCY, REASON_IDENTICAL_CONNECTOR_TYPES, REASON_IDENTICAL_PARENT_NODE, uuidIdProvider } from './nodox-service';
 import { DemoModule } from './mocks/module';
 
 describe('NodoxService: createNewDocument', () => {
@@ -79,18 +79,29 @@ describe('NodoxService: canAcceptConnection', () => {
   it('will result true if two connectors can connect', () => {
     const node1 = service.addNode(document, definition);
     const node2 = service.addNode(document, definition);
+    const node3 = service.addNode(document, definition);
     // different nodes, same dataType
-    expect(service.canAcceptConnection(node2.inputs[0], node1.outputs[0])).toBe(true);
-    expect(service.canAcceptConnection(node2.outputs[0], node1.inputs[0])).toBe(true);
+    expect(service.canAcceptConnection(document, node2.inputs[0], node1.outputs[0]).canConnect).toBe(true);
+    expect(service.canAcceptConnection(document, node2.outputs[0], node1.inputs[0]).canConnect).toBe(true);
 
     // same nodes
-    expect(service.canAcceptConnection(node1.inputs[0], node1.outputs[0])).toBe(false);
-    expect(service.canAcceptConnection(node1.outputs[0], node1.inputs[0])).toBe(false);
+    expect(service.canAcceptConnection(document, node1.inputs[0], node1.outputs[0]).canConnect).toBe(false);
+    expect(service.canAcceptConnection(document, node1.inputs[0], node1.outputs[0]).reason).toBe(REASON_IDENTICAL_PARENT_NODE);
+    expect(service.canAcceptConnection(document, node1.outputs[0], node1.inputs[0]).canConnect).toBe(false);
+    expect(service.canAcceptConnection(document, node1.inputs[0], node1.outputs[0]).reason).toBe(REASON_IDENTICAL_PARENT_NODE);
 
     // same connectorType
-    expect(service.canAcceptConnection(node2.inputs[0], node1.inputs[0])).toBe(false);
-    expect(service.canAcceptConnection(node2.outputs[0], node1.outputs[0])).toBe(false);
+    expect(service.canAcceptConnection(document, node2.inputs[0], node1.inputs[0]).canConnect).toBe(false);
+    expect(service.canAcceptConnection(document, node2.inputs[0], node1.inputs[0]).reason).toBe(REASON_IDENTICAL_CONNECTOR_TYPES);
+    expect(service.canAcceptConnection(document, node2.outputs[0], node1.outputs[0]).canConnect).toBe(false);
+    expect(service.canAcceptConnection(document, node2.outputs[0], node1.outputs[0]).reason).toBe(REASON_IDENTICAL_CONNECTOR_TYPES);
 
+    service.connect(document, node2.inputs[0], node1.outputs[0]);
+    service.connect(document, node3.inputs[0], node2.outputs[0]);
+    expect(document.connections.length).toBe(2);
+
+    expect(service.canAcceptConnection(document, node3.outputs[0], node1.inputs[0]).canConnect).toBe(false);
+    expect(service.canAcceptConnection(document, node3.outputs[0], node1.inputs[0]).reason).toBe(REASON_CIRCULAR_DEPENDENCY);
     // other data types
   });
 });

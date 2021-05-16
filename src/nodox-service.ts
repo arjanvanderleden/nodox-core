@@ -7,6 +7,11 @@ export const uuidIdProvider = () => v4();
 
 export type IdProvider = () => string;
 
+export const REASON_IDENTICAL_CONNECTOR_TYPES = 'identical connector types';
+export const REASON_IDENTICAL_PARENT_NODE = 'identical parent node';
+export const REASON_DATATYPE_MISMATCH = 'dataTypes do not match';
+export const REASON_CIRCULAR_DEPENDENCY = 'circular dependency';
+
 export const create: (getId: IdProvider) => NodoxService = (getId) => {
   const modules: NodoxModule[] = [];
 
@@ -24,7 +29,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
       definition.icon = definition.icon || 'nodox:core_nodox';
       const existingDef = getDefinition(definition.fullName);
       if (existingDef) {
-        throw new Error(`duplicate definition (${definition.fullName}): ${module.name} and ${existingDef.moduleName}`);
+        throw new Error(`duplicate definition (${definition.fullName}): ${module.name}`);
       }
     });
     const moduleNameSpaces = modules.map(m => m.namespace);
@@ -40,6 +45,23 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
   const byId = (id: string) => (item: {id:string}) => id === item.id;
   const getNode = (document: NodoxDocument, nodeId: string) => document.nodes.find(byId(nodeId));
   const getConnection = (document: NodoxDocument, connectionId: string) => document.connections.find(byId(connectionId));
+
+  const getUpstreamNodeIds = (document: NodoxDocument, nodeId: string) => {
+    const toUpstreamNodeIds = (list: string[], input: InputConnector) => {
+      const { outputNodeId } = getConnection(document, input.connectionId!)!;
+      const result: string[] = [...list, outputNodeId, ...getUpstreamNodeIds(document, outputNodeId)];
+      return result;
+    };
+
+    const hasConnection = (input: InputConnector) => input.connectionId !== undefined;
+    const node = getNode(document, nodeId);
+    return node === undefined
+      ? []
+      : node
+        .inputs
+        .filter(hasConnection)
+        .reduce(toUpstreamNodeIds, []);
+  };
 
   const getInput = (document: NodoxDocument, inputId: string) => {
     const node = document.nodes.find(node => node.inputs.find(byId(inputId)) !== undefined);
@@ -80,39 +102,65 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
     }
   };
 
+  const connectorPair = (firstConnector: Connector, secondConnector: Connector) => {
+    if (firstConnector.connectorType === secondConnector.connectorType) { return {}; }
+    const [inputConnector, outputConnector] = firstConnector.connectorType === ConnectorType.input
+      ? [firstConnector, secondConnector] as [InputConnector, OutputConnector]
+      : [secondConnector, firstConnector] as [InputConnector, OutputConnector];
+    return { inputConnector, outputConnector };
+  };
+
+  const doesAcceptDataType = (inputType: string, outputType: string) => {
+    const inputPathSegments = inputType.split('.').reverse();
+    const outputPathSegments = outputType.split('.').reverse();
+    const lastPathIsAny = inputPathSegments[0] === 'any' || outputPathSegments[0] === 'any';
+    const restPathsAreEqual = inputPathSegments.slice(1).join('.') === outputPathSegments.slice(1).join('.');
+
+    switch (true) {
+      case inputType === 'nodox.modules.core.any' || outputType === 'nodox.modules.core.any': return true;
+      case outputType === inputType: return true;
+      case lastPathIsAny && restPathsAreEqual: return true;
+      default: return false;
+    }
+  };
+
+  const canAcceptConnection = (document: NodoxDocument, firstConnector: Connector, secondConnector: Connector) => {
+    const { inputConnector: input, outputConnector: output } = connectorPair(firstConnector, secondConnector);
+    switch (true) {
+      case input === undefined || output === undefined: return { canConnect: false, reason: REASON_IDENTICAL_CONNECTOR_TYPES };
+      case input!.nodeId === output!.nodeId: return { canConnect: false, reason: REASON_IDENTICAL_PARENT_NODE };
+      case !doesAcceptDataType(input!.dataType, output!.dataType): return { canConnect: false, reason: REASON_DATATYPE_MISMATCH };
+      case getUpstreamNodeIds(document, output!.nodeId).includes(input!.nodeId): return { canConnect: false, reason: REASON_CIRCULAR_DEPENDENCY };
+    }
+    return { canConnect: true };
+  };
+
   const connect = (document: NodoxDocument, firstConnector: Connector, secondConnector: Connector) => {
-    if (!canAcceptConnection(firstConnector, secondConnector)) {
-      return undefined;
+    const { inputConnector: input, outputConnector: output } = connectorPair(firstConnector, secondConnector);
+    if (input !== undefined && output !== undefined) {
+      const { canConnect } = canAcceptConnection(document, input, output);
+      if (!canConnect) { return undefined; }
+
+      const currentInputConnections = document
+        .connections
+        .filter(connection => connection.inputConnectorId === input.id)
+        .map(connection => connection.id);
+
+      const connection: Connection = {
+        id: getId(),
+        inputConnectorId: input.id,
+        outputConnectorId: output.id,
+        inputNodeId: input.nodeId,
+        outputNodeId: output.nodeId
+      };
+
+      currentInputConnections.forEach(id => {
+        removeConnection(document, id);
+      });
+      input.connectionId = connection.id;
+      document.connections.push(connection);
+      return connection;
     }
-
-    const connectorPair = firstConnector.connectorType === ConnectorType.input
-      ? { inputConnector: firstConnector, outputConnector: secondConnector }
-      : { inputConnector: secondConnector, outputConnector: firstConnector };
-
-    if (connectorPair.outputConnector.connectorType !== ConnectorType.output) {
-      return undefined;
-    }
-
-    const inputConnector = connectorPair.inputConnector as InputConnector;
-    const outputConnector = connectorPair.outputConnector as OutputConnector;
-
-    const currentInputConnections = document
-      .connections
-      .filter(connection => connection.inputConnectorId === inputConnector.id)
-      .map(connection => connection.id);
-
-    const connection: Connection = {
-      id: getId(),
-      inputConnectorId: inputConnector.id,
-      outputConnectorId: outputConnector.id
-    };
-
-    currentInputConnections.forEach(id => {
-      removeConnection(document, id);
-    });
-    inputConnector.connectionId = connection.id;
-    document.connections.push(connection);
-    return connection;
   };
 
   const createNewDocument = <T>(metaData?: T) => {
@@ -168,28 +216,6 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
   const getConnections = (document: NodoxDocument) => document.connections;
 
   const getNodes = (document: NodoxDocument) => document.nodes;
-
-  const doesAcceptDataType = (incomingType: string, outgoingType: string) => {
-    // TODO refine using accepts of datatypes in Module
-    // for now: always accept "nodox.core.any"
-    if (incomingType === 'nodox.modules.core.any' || outgoingType === 'nodox.modules.core.any') return true;
-    if (outgoingType === incomingType) return true;
-    const sourceStrings = incomingType.split('.').reverse();
-    const targetStrings = outgoingType.split('.').reverse();
-    if (sourceStrings[0] === 'any' || targetStrings[0] === 'any') {
-      if (sourceStrings.slice(1).join('.') === targetStrings.slice(1).join('.')) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  const canAcceptConnection = (sourceConnector: Connector, targetConnector: Connector) => {
-    if (sourceConnector.connectorType === targetConnector.connectorType) return false;
-    if (sourceConnector.nodeId === targetConnector.nodeId) return false;
-    if (sourceConnector.dataType === targetConnector.dataType) return true;
-    return doesAcceptDataType(sourceConnector.dataType, targetConnector.dataType);
-  };
 
   const addNode = (document: NodoxDocument, definition: NodoxNodeDefinition) => {
     const toInputConnector = (nodeId: string) => (inputDefinition: InputDefinition) => ({

@@ -43,7 +43,10 @@ export interface NodoxService {
      * @param sourceConnector
      * @param targetConnector
      */
-    canAcceptConnection(sourceConnector: Connector, targetConnector: Connector): boolean;
+    canAcceptConnection(document: NodoxDocument, sourceConnector: Connector, targetConnector: Connector): {
+        canConnect: boolean;
+        reason?: string | undefined;
+    };
     /**
      * returns the index in the collection of inputs or outputs
      * can be used for redering nodes
@@ -118,6 +121,8 @@ export interface Connection {
     id: string;
     inputConnectorId: string;
     outputConnectorId: string;
+    inputNodeId: string;
+    outputNodeId: string;
 }
 /**
  * A
@@ -156,11 +161,11 @@ export interface NodoxNode {
     definitionFullName: string;
     inputs: InputConnector[];
     outputs: OutputConnector[];
-    icon: string;
+    icon?: string;
 }
 /**
  * A collections of nodes and their connections
- * T type of medtadata
+ * T type of metadata
  */
 export interface NodoxDocument<T = never | any> {
     id: string;
@@ -181,14 +186,13 @@ export declare type CloneFunction<T> = (objectToClone: T) => T;
 export interface NodoxNodeDefinition {
     name: string;
     fullName: string;
-    moduleName: string;
     description: string;
     processFunction: ProcessFunction;
     inputs: Array<InputDefinition>;
     outputs: Array<OutputDefinition>;
-    icon: string;
-    preprocessFunction: PreprocessFunction;
-    postprocessFunction: PostprocessFunction;
+    icon?: string;
+    preprocessFunction?: PreprocessFunction;
+    postprocessFunction?: PostprocessFunction;
     processingMode: NodeProcessingMode;
 }
 export interface NodoxModule {
@@ -219,6 +223,6 @@ export interface NodeValues {
     minLength: number;
     values: unknown;
 }
-export declare type ProcessFunction = (context: NodoxRunningContext, result: Lookup<any>, inputParams: unknown, index: number) => void;
+export declare type ProcessFunction = (context: NodoxRunningContext, result: Lookup<any>, inputParams: Lookup<any>, index: number) => void;
 export declare type PreprocessFunction = (context: NodoxRunningContext) => void;
 export declare type PostprocessFunction = (context: NodoxRunningContext, result: NodeValues) => void;
