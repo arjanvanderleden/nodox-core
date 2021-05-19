@@ -1,5 +1,6 @@
-import { create, REASON_CIRCULAR_DEPENDENCY, REASON_IDENTICAL_CONNECTOR_TYPES, REASON_IDENTICAL_PARENT_NODE, uuidIdProvider } from './nodox-service';
-import { DemoModule } from './mocks/module';
+import { create, REASON_CIRCULAR_DEPENDENCY, REASON_DATATYPE_MISMATCH, REASON_IDENTICAL_CONNECTOR_TYPES, REASON_IDENTICAL_PARENT_NODE, uuidIdProvider } from './nodox-service';
+import { Demo2Module, Demo3Module, DemoModule } from './mocks/module';
+import { CORE_MODULE_NAMESPACE, isInput, isOutput } from './types';
 
 describe('NodoxService: createNewDocument', () => {
   it('creates a new document', () => {
@@ -32,6 +33,21 @@ describe('NodoxService: registerModule', () => {
     expect(service.getModules().length).toBe(0);
     service.registerModule(module);
     expect(service.getModules().length).toBe(1);
+  });
+
+  it('should throw if module dependencies are not met', () => {
+    const module = new Demo2Module();
+    const service = create(uuidIdProvider);
+    expect(service.getModules().length).toBe(0);
+    expect(() => service.registerModule(module)).toThrow();
+  });
+
+  it('should throw if module dependencies are not met', () => {
+    const module = new DemoModule();
+    const service = create(uuidIdProvider);
+    service.registerModule(module);
+    expect(service.getModules().length).toBe(1);
+    expect(() => service.registerModule(module)).toThrow();
   });
 });
 
@@ -71,8 +87,8 @@ describe('NodoxService: addNode', () => {
 
 describe('NodoxService: canAcceptConnection', () => {
   const service = create(uuidIdProvider);
-  const module = new DemoModule();
-  service.registerModule(module);
+  service.registerModule(new DemoModule());
+  service.registerModule(new Demo3Module());
   const definition = service.getDefinition('nodox.modules.mock.identity');
   const document = service.createNewDocument();
 
@@ -104,6 +120,38 @@ describe('NodoxService: canAcceptConnection', () => {
     expect(service.canAcceptConnection(document, node3.outputs[0], node1.inputs[0]).reason).toBe(REASON_CIRCULAR_DEPENDENCY);
     // other data types
   });
+
+  it('will not connect inputs with mismatched data types', () => {
+    const definitionIdentity = service.getDefinition('nodox.modules.mock.identity');
+    const definitionSomeString = service.getDefinition('nodox.modules.mock3.somestring');
+    const document = service.createNewDocument();
+
+    const node1 = service.addNode(document, definitionIdentity);
+    const node2 = service.addNode(document, definitionSomeString);
+
+    // mismatched datatypes
+    expect(service.canAcceptConnection(document, node1.inputs[0], node2.outputs[0]).canConnect).toBe(false);
+    expect(service.canAcceptConnection(document, node1.inputs[0], node2.outputs[0]).reason).toBe(REASON_DATATYPE_MISMATCH);
+    expect(service.canAcceptConnection(document, node2.inputs[0], node1.outputs[0]).canConnect).toBe(false);
+    expect(service.canAcceptConnection(document, node2.inputs[0], node1.outputs[0]).reason).toBe(REASON_DATATYPE_MISMATCH);
+  });
+
+  it(`will will connect when one of the data types = ${CORE_MODULE_NAMESPACE}.any`, () => {
+    const definitionIdentity = service.getDefinition('nodox.modules.mock.identity');
+    const definitionSomeString = service.getDefinition('nodox.modules.mock3.somestring');
+    const definitionAnything = service.getDefinition('nodox.modules.mock3.anything');
+    const document = service.createNewDocument();
+
+    const node1 = service.addNode(document, definitionIdentity);
+    const node2 = service.addNode(document, definitionSomeString);
+    const node3 = service.addNode(document, definitionAnything);
+
+    // mismatched datatypes
+    expect(service.canAcceptConnection(document, node1.inputs[0], node3.outputs[0]).canConnect).toBe(true);
+    expect(service.canAcceptConnection(document, node2.inputs[0], node3.outputs[0]).canConnect).toBe(true);
+    expect(service.canAcceptConnection(document, node3.inputs[0], node1.outputs[0]).canConnect).toBe(true);
+    expect(service.canAcceptConnection(document, node3.inputs[0], node2.outputs[0]).canConnect).toBe(true);
+  });
 });
 
 describe('NodoxService: getConnections', () => {
@@ -132,7 +180,7 @@ const createBasicDocument = () => {
   return { service, document, iNode1, iNode2, sNode1, sNode2 };
 };
 
-describe('createBasicDoument', () => {
+describe('createBasicDocument', () => {
   it('creates a document', () => {
     const { document, iNode1, iNode2, sNode1, sNode2 } = createBasicDocument();
     expect(document).toBeDefined();
@@ -195,84 +243,255 @@ describe('NodoxService: connect', () => {
 
     expect(document.connections.length).toBe(2);
   });
+
+  it('create no connection when the connector can not connect', () => {
+    const { service, document, iNode1, sNode1, sNode2 } = createBasicDocument();
+    const connection1 = service.connect(document, iNode1.outputs[0], sNode1.outputs[0]);
+    expect(connection1).toBeUndefined();
+    const connection2 = service.connect(document, iNode1.inputs[0], iNode1.outputs[0]);
+    expect(connection2).toBeUndefined();
+  });
 });
 
 describe('NodoxService: deleteNode', () => {
   it('deletes a node', () => {
-
+    const { service, document, iNode1 } = createBasicDocument();
+    const numberOfNodes = document.nodes.length;
+    service.deleteNode(document, iNode1);
+    expect(document.nodes.length).toBe(numberOfNodes - 1);
+    expect(service.getNode(document, iNode1.id)).toBeUndefined();
   });
 
   it('deletes the connections to a node', () => {
+    const { service, document, iNode1, iNode2, sNode1, sNode2 } = createBasicDocument();
+    service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    service.connect(document, iNode1.outputs[0], sNode2.inputs[0]);
+    service.connect(document, iNode2.outputs[0], iNode1.inputs[0]);
 
+    expect(document.connections.length).toBe(3);
+    service.deleteNode(document, iNode1);
+    expect(document.connections.length).toBe(0);
+
+    expect(sNode1.inputs[0].connectionId).toBeUndefined();
+    expect(sNode2.inputs[0].connectionId).toBeUndefined();
   });
 
   it('does not delete other connections', () => {
+    const { service, document, iNode1, iNode2, sNode1 } = createBasicDocument();
+    const combineStringsDefinition = service.getDefinition('nodox.modules.mock.combinestrings');
+    const cNode1 = service.addNode(document, combineStringsDefinition);
+    expect(cNode1).toBeDefined();
 
+    service.connect(document, iNode2.outputs[0], iNode1.inputs[0]);
+    service.connect(document, iNode2.outputs[0], cNode1.inputs[0]);
+    service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    service.connect(document, iNode1.outputs[0], cNode1.inputs[1]);
+
+    expect(document.connections.length).toBe(4);
+    service.deleteNode(document, iNode1);
+    expect(document.connections.length).toBe(1);
+
+    expect(cNode1.inputs[0].connectionId).toBe(document.connections[0].id);
   });
 });
 
 describe('NodoxService: deleteNodes', () => {
   it('', () => {
+    const { service, document, iNode1, iNode2, sNode1, sNode2 } = createBasicDocument();
+    service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    service.connect(document, iNode1.outputs[0], sNode2.inputs[0]);
+    service.connect(document, iNode2.outputs[0], iNode1.inputs[0]);
 
+    service.deleteNodes(document, [iNode1, iNode2, sNode1, sNode2]);
+    expect(document.nodes.length).toBe(0);
+    expect(document.connections.length).toBe(0);
   });
 });
 
-describe('NodoxService: getfromJsonConnections', () => {
-  it('', () => {
+describe('NodoxService: getfromJson', () => {
+  it('creates a document from JSON', () => {
+    const { service, document, iNode1, iNode2, sNode1, sNode2 } = createBasicDocument();
+    service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    service.connect(document, iNode1.outputs[0], sNode2.inputs[0]);
+    service.connect(document, iNode2.outputs[0], iNode1.inputs[0]);
 
+    const newDocument = service.fromJson(JSON.stringify(document));
+    expect(newDocument.nodes.length).toBe(4);
+    expect(newDocument.connections.length).toBe(3);
   });
 });
 
 describe('NodoxService: getInput', () => {
-  it('', () => {
+  it('should find an inputConnector and the parent Node if the connector with id exists', () => {
+    const { service, document, iNode1, sNode2 } = createBasicDocument();
+    expect(service.getInput(document, iNode1.inputs[0].id)).toEqual({ node: iNode1, connector: iNode1.inputs[0] });
+    expect(service.getInput(document, sNode2.inputs[0].id)).toEqual({ node: sNode2, connector: sNode2.inputs[0] });
+    expect(service.getInput(document, 'does-not-exist')).toEqual({ });
+  });
+});
 
+describe('NodoxService: getOutput', () => {
+  it('should find an outputConnector and the parent Node if the connector with id exists', () => {
+    const { service, document, iNode1, sNode2 } = createBasicDocument();
+    expect(service.getOutput(document, iNode1.outputs[0].id)).toEqual({ node: iNode1, connector: iNode1.outputs[0] });
+    expect(service.getOutput(document, sNode2.outputs[0].id)).toEqual({ node: sNode2, connector: sNode2.outputs[0] });
+    expect(service.getOutput(document, 'does-not-exist')).toEqual({ });
+  });
+});
+
+describe('NodoxService: getConnector', () => {
+  it('should find an outputConnector and the parent Node if the connector with id exists', () => {
+    const { service, document, iNode1, sNode2 } = createBasicDocument();
+    expect(service.getConnector(document, iNode1.outputs[0].id)).toEqual({ node: iNode1, connector: iNode1.outputs[0] });
+    expect(service.getConnector(document, sNode2.inputs[0].id)).toEqual({ node: sNode2, connector: sNode2.inputs[0] });
+    expect(service.getConnector(document, 'does-not-exist')).toEqual({ });
   });
 });
 
 describe('NodoxService: getModules', () => {
-  it('', () => {
-
+  it('returns the modules registerd at a service', () => {
+    const { service } = createBasicDocument();
+    const modules = service.getModules();
+    expect(modules.length).toBe(1);
+    expect(modules[0].name).toBe('Mock');
   });
 });
 
 describe('NodoxService: getNode', () => {
-  it('', () => {
-
+  it('returns a node by id', () => {
+    const { service, document, iNode1, sNode2 } = createBasicDocument();
+    expect(service.getNode(document, iNode1.id)).toEqual(iNode1);
+    expect(service.getNode(document, sNode2.id)).toEqual(sNode2);
   });
 });
 
 describe('NodoxService: getNodeFromConnector', () => {
-  it('', () => {
-
+  it('returns the parent node of a connector ', () => {
+    const { service, document, iNode1, sNode2 } = createBasicDocument();
+    expect(service.getNodeFromConnector(document, iNode1.inputs[0])).toEqual(iNode1);
+    expect(service.getNodeFromConnector(document, sNode2.outputs[0])).toEqual(sNode2);
   });
 });
 
 describe('NodoxService: getNodes', () => {
   it('', () => {
-
-  });
-});
-
-describe('NodoxService: getOutput', () => {
-  it('', () => {
-
   });
 });
 
 describe('NodoxService: indexOfConnector', () => {
   it('', () => {
+    const { service, document, iNode1 } = createBasicDocument();
+    const combineStringsDefinition = service.getDefinition('nodox.modules.mock.combinestrings');
+    const cNode1 = service.addNode(document, combineStringsDefinition);
+    expect(cNode1).toBeDefined();
 
+    expect(service.indexOfConnector(cNode1, cNode1.inputs[1])).toBe(1);
+    expect(service.indexOfConnector(cNode1, cNode1.outputs[0])).toBe(0);
+    expect(service.indexOfConnector(cNode1, iNode1.outputs[0])).toBe(-1);
   });
 });
 
-describe('NodoxService: reAssignIds', () => {
-  it('', () => {
+describe('NodoxService: cloneDocument', () => {
+  it('clones a document with new ids', () => {
+    const { service, document, iNode1, sNode2, iNode2, sNode1 } = createBasicDocument();
 
+    iNode1.name = '--i1--';
+    iNode2.name = '--i2--';
+    sNode1.name = '--s1--';
+    sNode2.name = '--s2--';
+
+    // iNode1 => sNode1
+    service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    // iNode1 => sNode2
+    service.connect(document, iNode1.outputs[0], sNode2.inputs[0]);
+    // iNode2 => iNode1
+    service.connect(document, iNode2.outputs[0], iNode1.inputs[0]);
+
+    const newDocument = service.cloneDocument(document);
+
+    expect(newDocument).toBeDefined();
+    expect(newDocument.nodes.length).toBe(4);
+    expect(newDocument.connections.length).toBe(3);
+
+    const newINode1 = newDocument.nodes.find(node => node.name === iNode1.name);
+    const newINode2 = newDocument.nodes.find(node => node.name === iNode2.name);
+    const newSNode1 = newDocument.nodes.find(node => node.name === sNode1.name);
+    const newSNode2 = newDocument.nodes.find(node => node.name === sNode2.name);
+
+    expect(newINode1).toBeDefined();
+    expect(newINode2).toBeDefined();
+    expect(newSNode1).toBeDefined();
+    expect(newSNode2).toBeDefined();
+
+    // iNode1 => sNode1
+    const newConnection1 = newDocument.connections.find(connection =>
+      connection.inputConnectorId === newSNode1?.inputs[0].id &&
+      connection.outputConnectorId === newINode1?.outputs[0].id &&
+      connection.inputNodeId === newSNode1.id &&
+      connection.outputNodeId === newINode1.id
+    );
+
+    // iNode1 => sNode2
+    const newConnection2 = newDocument.connections.find(connection =>
+      connection.inputConnectorId === newSNode2?.inputs[0].id &&
+      connection.outputConnectorId === newINode1?.outputs[0].id &&
+      connection.inputNodeId === newSNode2.id &&
+      connection.outputNodeId === newINode1.id
+    );
+
+    // iNode2 => iNode1
+    const newConnection3 = newDocument.connections.find(connection =>
+      connection.inputConnectorId === newINode1?.inputs[0].id &&
+      connection.outputConnectorId === newINode2?.outputs[0].id &&
+      connection.inputNodeId === newINode1.id &&
+      connection.outputNodeId === newINode2.id
+    );
+
+    expect(newConnection1).toBeDefined();
+    expect(newConnection2).toBeDefined();
+    expect(newConnection3).toBeDefined();
   });
 });
 
 describe('NodoxService: removeConnection', () => {
-  it('', () => {
+  it('removes a connection', () => {
+    const { service, document, iNode1, sNode1 } = createBasicDocument();
+    const connection = service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    expect(document.connections.length).toBe(1);
+    expect(sNode1.inputs[0].connectionId).toBe(connection?.id);
+    service.removeConnection(document, connection!.id);
+    expect(sNode1.inputs[0].connectionId).toBe(undefined);
+  });
 
+  it('does not remove a connection that does not exist', () => {
+    const { service, document, iNode1, sNode1 } = createBasicDocument();
+    const connection = service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    expect(document.connections.length).toBe(1);
+    expect(sNode1.inputs[0].connectionId).toBe(connection?.id);
+    service.removeConnection(document, 'does-not-exists');
+    expect(document.connections.length).toBe(1);
+  });
+
+  it('does remove a connection even as the inputConnector does not exist', () => {
+    const { service, document, iNode1, sNode1 } = createBasicDocument();
+    const connection = service.connect(document, iNode1.outputs[0], sNode1.inputs[0]);
+    expect(document.connections.length).toBe(1);
+    connection!.inputConnectorId = 'does-not-exists';
+    service.removeConnection(document, connection!.id);
+    expect(document.connections.length).toBe(0);
+  });
+});
+
+describe('type guards', () => {
+  it('isInput', () => {
+    const { iNode1 } = createBasicDocument();
+    expect(isInput(iNode1.inputs[0])).toBe(true);
+    expect(isInput(iNode1.outputs[0])).toBe(false);
+  });
+
+  it('isOutput', () => {
+    const { iNode1 } = createBasicDocument();
+    expect(isOutput(iNode1.inputs[0])).toBe(false);
+    expect(isOutput(iNode1.outputs[0])).toBe(true);
   });
 });

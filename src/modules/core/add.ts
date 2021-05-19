@@ -1,6 +1,6 @@
 import { CORE_MODULE_NAMESPACE, Lookup, NodeProcessingMode, NodoxNodeDefinition, NodoxRunningContext } from '../../types';
 
-const processFunction = (context: NodoxRunningContext, result: any, inputParams: Lookup<any>, index:number) => {
+const processFunction = (context: NodoxRunningContext, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
   result.sum = result.sum || [];
   const a = +inputParams.a;
   const b = +inputParams.b;

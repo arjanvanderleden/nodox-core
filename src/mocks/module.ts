@@ -1,14 +1,16 @@
-import { Lookup } from '../types';
-export class DemoModule {
+import { NodoxModuleBase } from '../modules/nodox-module-base';
+import { CORE_MODULE_NAMESPACE, DataType, Lookup, NodeProcessingMode, NodoxNodeDefinition } from '../types';
+export class DemoModule extends NodoxModuleBase {
     name: string;
     description: string;
     namespace: string;
     dependencies: string[];
-    dataTypes: any[];
-    definitions: any[];
+    dataTypes: DataType[];
+    definitions: NodoxNodeDefinition[];
     cloneFunctions = {};
 
     constructor () {
+      super();
       this.name = 'Mock';
       this.description = 'Mock definitions for Nodox';
       this.namespace = 'nodox.modules.mock';
@@ -28,6 +30,7 @@ export class DemoModule {
             const a = +inputParams.a;
             result.b.push(a);
           },
+          processingMode: NodeProcessingMode.wrap,
           inputs: [{
             name: 'a',
             description: 'input number',
@@ -50,6 +53,7 @@ export class DemoModule {
             const a = String(inputParams.a);
             result.b.push(a);
           },
+          processingMode: NodeProcessingMode.wrap,
           inputs: [{
             name: 'a',
             description: 'input ',
@@ -63,6 +67,121 @@ export class DemoModule {
           }],
           icon: 'nodox:core_nodox',
           fullName: this.namespace + '.tostring'
-        }];
+        }, {
+          name: 'to combined string',
+          description: 'creates a combined string of of both input when not empty',
+          processFunction: (context: any, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
+            result.c = result.b ?? [];
+            const a = String(inputParams.a);
+            const b = String(inputParams.b);
+            result.c.push([a, b].filter(s => s.length > 1).join(' - '));
+          },
+          processingMode: NodeProcessingMode.wrap,
+          inputs: [{
+            name: 'a',
+            description: 'input a',
+            dataType: this.namespace + '.any',
+            defaultValue: ''
+          }, {
+            name: 'b',
+            description: 'input b',
+            dataType: this.namespace + '.any',
+            defaultValue: ''
+          }],
+          outputs: [{
+            name: 'c',
+            description: 'The string value of input a + input b',
+            dataType: this.namespace + '.string'
+          }],
+          icon: 'nodox:core_nodox',
+          fullName: this.namespace + '.combinestrings'
+        }
+      ];
     }
+}
+
+export class Demo2Module extends NodoxModuleBase {
+  name: string;
+  description: string;
+  namespace: string;
+  definitions: NodoxNodeDefinition[];
+  constructor () {
+    super();
+    this.name = 'Mock2';
+    this.description = 'Mock2 definitions for Nodox';
+    this.namespace = 'nodox.modules.mock2';
+    this.dependencies = ['nodox.modules.mock'];
+    this.definitions = [];
+  }
+}
+
+export class Demo3Module extends NodoxModuleBase {
+  name: string;
+  description: string;
+  namespace: string;
+  definitions: NodoxNodeDefinition[];
+  constructor () {
+    super();
+    this.name = 'Mock2';
+    this.description = 'Mock2 definitions for Nodox';
+    this.namespace = 'nodox.modules.mock3';
+    this.dependencies = [];
+    this.definitions = [{
+      name: 'to some string',
+      description: 'creates some value of type somestring',
+      processFunction: (context: any, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
+        result.c = result.b ?? [];
+        const a = String(inputParams.a);
+        const b = String(inputParams.b);
+        result.c.push([a, b].filter(s => s.length > 1).join(' - '));
+      },
+      processingMode: NodeProcessingMode.wrap,
+      inputs: [{
+        name: 'a',
+        description: 'input a',
+        dataType: this.namespace + '.somestring',
+        defaultValue: ''
+      }, {
+        name: 'b',
+        description: 'input b',
+        dataType: this.namespace + '.somestring',
+        defaultValue: ''
+      }],
+      outputs: [{
+        name: 'c',
+        description: 'The string value of input a + input b',
+        dataType: this.namespace + '.somestring'
+      }],
+      icon: 'nodox:core_nodox',
+      fullName: this.namespace + '.somestring'
+    }, {
+      name: 'any thing',
+      description: 'creates anything',
+      processFunction: (context: any, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
+        result.c = result.b ?? [];
+        const a = String(inputParams.a);
+        const b = String(inputParams.b);
+        result.c.push([a, b].filter(s => s.length > 1).join(' - '));
+      },
+      processingMode: NodeProcessingMode.wrap,
+      inputs: [{
+        name: 'a',
+        description: 'input a',
+        dataType: CORE_MODULE_NAMESPACE + '.any',
+        defaultValue: ''
+      }, {
+        name: 'b',
+        description: 'input b',
+        dataType: CORE_MODULE_NAMESPACE + '.any',
+        defaultValue: ''
+      }],
+      outputs: [{
+        name: 'c',
+        description: 'The any value of input a + input b',
+        dataType: CORE_MODULE_NAMESPACE + '.any'
+      }],
+      icon: 'nodox:core_nodox',
+      fullName: this.namespace + '.anything'
+    }];
+  }
 }

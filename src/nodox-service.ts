@@ -1,6 +1,6 @@
 import { v4 } from 'uuid';
 import { Connector, NodoxModule, NodoxNodeDefinition, NodoxService, NodoxDocument, Connection, NodoxNode, InputConnector, OutputConnector } from '.';
-import { ConnectorType, InputDefinition, OutputDefinition } from './types';
+import { CloneFunction, ConnectorType, CORE_MODULE_NAMESPACE, InputDefinition, Lookup, OutputDefinition } from './types';
 
 // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
 export const uuidIdProvider = () => v4();
@@ -96,9 +96,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
         delete input.connectionId;
       }
       const index = document.connections.indexOf(connection);
-      if (index > -1) {
-        document.connections.splice(index, 1);
-      }
+      document.connections.splice(index, 1);
     }
   };
 
@@ -117,7 +115,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
     const restPathsAreEqual = inputPathSegments.slice(1).join('.') === outputPathSegments.slice(1).join('.');
 
     switch (true) {
-      case inputType === 'nodox.modules.core.any' || outputType === 'nodox.modules.core.any': return true;
+      case inputType === `${CORE_MODULE_NAMESPACE}.any` || outputType === `${CORE_MODULE_NAMESPACE}.any`: return true;
       case outputType === inputType: return true;
       case lastPathIsAny && restPathsAreEqual: return true;
       default: return false;
@@ -179,33 +177,68 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
    * used for cloning a document
    * @param document
    */
-  const reAssignIds = (document: NodoxDocument) => {
-    document.id = getId();
-    document.name += '.cloned';
-    const oldConnectorIds: {[key: string]: string} = {};
-    document.nodes.forEach(n => {
-      const newId = getId();
-      oldConnectorIds[n.id] = newId;
-      n.id = newId;
-      n.inputs.forEach(inputConnector => {
-        const newInputId = getId();
-        inputConnector.nodeId = n.id;
-        oldConnectorIds[inputConnector.id] = newInputId;
-        inputConnector.id = newInputId;
-      });
-      n.outputs.forEach(outputConnector => {
-        const newOutputId = getId();
-        outputConnector.nodeId = n.id;
-        oldConnectorIds[outputConnector.id] = newOutputId;
-        outputConnector.id = oldConnectorIds[newOutputId];
-      });
+  const cloneDocument = (document: NodoxDocument) => {
+    const newDocument = createNewDocument();
+
+    const toNewIds = (lookup: Lookup<string>, item: {id: string}) => {
+      lookup[item.id] = getId();
+      return lookup;
+    };
+    const newIds: Lookup<string> = { [document.id]: getId() };
+    document.nodes.reduce(toNewIds, newIds);
+    document.nodes.forEach(node => {
+      node.inputs.reduce(toNewIds, newIds);
+      node.outputs.reduce(toNewIds, newIds);
     });
-    document.connections.forEach(connector => {
-      connector.id = getId();
-      connector.inputConnectorId = oldConnectorIds[connector.inputConnectorId];
-      connector.outputConnectorId = oldConnectorIds[connector.outputConnectorId];
-    });
-    return document;
+    document.connections.reduce(toNewIds, newIds);
+
+    const toNewInput: CloneFunction<InputConnector> = (input) => {
+      const id = newIds[input.id];
+      return {
+        ...input,
+        id,
+        nodeId: newIds[input.nodeId]
+      };
+    };
+
+    const toNewOutput: CloneFunction<OutputConnector> = (output) => {
+      const id = newIds[output.id];
+      return <OutputConnector>{
+        ...output,
+        id,
+        nodeId: newIds[output.nodeId]
+      };
+    };
+
+    const toNewConnection = (connection: Connection) => {
+      const id = newIds[connection.id];
+      return <Connection>{
+        ...connection,
+        id,
+        inputConnectorId: newIds[connection.inputConnectorId],
+        inputNodeId: newIds[connection.inputNodeId],
+        outputConnectorId: newIds[connection.outputConnectorId],
+        outputNodeId: newIds[connection.outputNodeId]
+      };
+    };
+
+    const toNewNode = (node: NodoxNode) => {
+      const id = newIds[node.id];
+      return {
+        ...node,
+        id,
+        inputs: node.inputs.map(toNewInput),
+        outputs: node.outputs.map(toNewOutput)
+      };
+    };
+    const result = {
+      ...document,
+      ...newDocument,
+      name: `${document.name}.cloned`,
+      nodes: document.nodes.map(toNewNode),
+      connections: document.connections.map(toNewConnection)
+    };
+    return result;
   };
 
   const fromJson = (s: string) => {
@@ -252,14 +285,14 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
   };
 
   const deleteNode = (document: NodoxDocument, node: NodoxNode) => {
-    const isConnected = (connection: Connection) => node
-      .inputs
-      .map(input => input.connectionId)
-      .includes(connection.id);
+    const isConnectedToNode = (connection: Connection) =>
+      connection.inputNodeId === node.id ||
+      connection.outputNodeId === node.id;
+
     const remove = (connection: Connection) => removeConnection(document, connection.id);
 
     document.connections
-      .filter(isConnected)
+      .filter(isConnectedToNode)
       .forEach(remove);
     document.nodes.splice(document.nodes.indexOf(node), 1);
   };
@@ -282,7 +315,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
     getNodes,
     getOutput,
     indexOfConnector,
-    reAssignIds,
+    cloneDocument,
     registerModule,
     removeConnection
   };

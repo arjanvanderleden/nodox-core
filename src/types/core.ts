@@ -37,7 +37,7 @@ export interface NodoxService {
     getConnections(document: NodoxDocument): Array<Connection>;
     createNewDocument<T>(metaData?: T): NodoxDocument<T>;
 
-    reAssignIds(document: NodoxDocument): NodoxDocument;
+    cloneDocument(document: NodoxDocument): NodoxDocument;
 
     fromJson(s: string): NodoxDocument;
 

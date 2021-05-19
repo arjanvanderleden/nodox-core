@@ -14,3 +14,5 @@ export function isInput (connector: Connector): connector is InputConnector {
 export function isOutput (connector: Connector): connector is OutputConnector {
   return connector.connectorType === ConnectorType.output;
 }
+
+export type CloneFunction<T> = (item: T) => T;
