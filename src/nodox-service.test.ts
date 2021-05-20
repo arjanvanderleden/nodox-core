@@ -42,7 +42,7 @@ describe('NodoxService: registerModule', () => {
     expect(() => service.registerModule(module)).toThrow();
   });
 
-  it('should throw if module dependencies are not met', () => {
+  it('should throw if duplicate definitions are registered', () => {
     const module = new DemoModule();
     const service = create(uuidIdProvider);
     service.registerModule(module);
