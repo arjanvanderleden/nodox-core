@@ -1,4 +1,11 @@
-﻿import { addDefinition, randomDefinition, maxDefinition, minDefinition, listSortDefinition, listReverse } from '.';
+﻿import { addDefinition } from './add';
+import { randomDefinition } from './random';
+import { maxDefinition } from './max';
+import { minDefinition } from './min';
+import { listReverse } from './list-reverse';
+import { listShuffleDefinition } from './list-shuffle';
+import { listSortDefinition  } from './list-sort';
+
 import { CORE_MODULE_NAMESPACE, NodoxNodeDefinition } from '../../types';
 import { NodoxModuleBase } from '../nodox-module-base';
 
@@ -41,6 +48,7 @@ export class Core extends NodoxModuleBase {
       maxDefinition,
       minDefinition,
       listSortDefinition,
+      listShuffleDefinition,
       listReverse
     ];
   }

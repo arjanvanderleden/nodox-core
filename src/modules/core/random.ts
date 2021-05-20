@@ -1,7 +1,7 @@
 import { NodoxRunningContext, Lookup } from '../..';
 import { CORE_MODULE_NAMESPACE, NodeProcessingMode, NodoxNodeDefinition } from '../../types';
 
-const processFunction = (context: NodoxRunningContext, result: any, inputParams: Lookup<any>, index:number) => {
+const processFunction = (_context: NodoxRunningContext, result: any, inputParams: Lookup<any>, _index:number) => {
   if (!result.random) {
     result.random = [];
     const seed = inputParams.seed;

@@ -1,7 +1,7 @@
 import { NodoxRunningContext, Lookup } from '../..';
 import { CORE_MODULE_NAMESPACE, NodeProcessingMode, NodoxNodeDefinition } from '../../types';
 
-const postprocessFunction = (context: NodoxRunningContext, nodeValues: Lookup<any>) => {
+const postprocessFunction = (_context: NodoxRunningContext, nodeValues: Lookup<any>) => {
   nodeValues.keyNames.push('count');
   nodeValues.values.count = nodeValues.values.count || [];
   nodeValues.values.item = nodeValues.values.item || [];
@@ -31,7 +31,7 @@ const postprocessFunction = (context: NodoxRunningContext, nodeValues: Lookup<an
   nodeValues.values.count.push(nodeValues.values.item.length);
 };
 
-const processFunction = (context: NodoxRunningContext, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
+const processFunction = (_context: NodoxRunningContext, result: Lookup<any>, inputParams: Lookup<any>, _index:number) => {
   result.item = result.item ?? [];
   if (!result.seed) {
     result.seed = [];

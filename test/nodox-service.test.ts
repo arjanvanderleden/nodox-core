@@ -1,6 +1,6 @@
-import { create, REASON_CIRCULAR_DEPENDENCY, REASON_DATATYPE_MISMATCH, REASON_IDENTICAL_CONNECTOR_TYPES, REASON_IDENTICAL_PARENT_NODE, uuidIdProvider } from './nodox-service';
+import { create, REASON_CIRCULAR_DEPENDENCY, REASON_DATATYPE_MISMATCH, REASON_IDENTICAL_CONNECTOR_TYPES, REASON_IDENTICAL_PARENT_NODE, uuidIdProvider } from '../src/nodox-service';
 import { Demo2Module, Demo3Module, DemoModule } from './mocks/module';
-import { CORE_MODULE_NAMESPACE, isInput, isOutput } from './types';
+import { CORE_MODULE_NAMESPACE, isInput, isOutput } from '../src/types';
 
 describe('NodoxService: createNewDocument', () => {
   it('creates a new document', () => {
@@ -245,7 +245,7 @@ describe('NodoxService: connect', () => {
   });
 
   it('create no connection when the connector can not connect', () => {
-    const { service, document, iNode1, sNode1, sNode2 } = createBasicDocument();
+    const { service, document, iNode1, sNode1 } = createBasicDocument();
     const connection1 = service.connect(document, iNode1.outputs[0], sNode1.outputs[0]);
     expect(connection1).toBeUndefined();
     const connection2 = service.connect(document, iNode1.inputs[0], iNode1.outputs[0]);

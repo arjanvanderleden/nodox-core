@@ -1,10 +1,10 @@
-import { NodoxModuleBase } from '../modules/nodox-module-base';
-import { CORE_MODULE_NAMESPACE, DataType, Lookup, NodeProcessingMode, NodoxNodeDefinition } from '../types';
+import { NodoxModuleBase } from '../../src/modules/nodox-module-base';
+import { CORE_MODULE_NAMESPACE, DataType, Lookup, NodeProcessingMode, NodoxNodeDefinition } from '../../src/types';
 export class DemoModule extends NodoxModuleBase {
     name: string;
     description: string;
     namespace: string;
-    dependencies: string[];
+
     dataTypes: DataType[];
     definitions: NodoxNodeDefinition[];
     cloneFunctions = {};
@@ -25,7 +25,7 @@ export class DemoModule extends NodoxModuleBase {
         {
           name: 'identity',
           description: 'returns the same number',
-          processFunction: (context: any, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
+          processFunction: (_context: any, result: Lookup<any>, inputParams: Lookup<any>, _index:number) => {
             result.b = result.b || [];
             const a = +inputParams.a;
             result.b.push(a);
@@ -48,7 +48,7 @@ export class DemoModule extends NodoxModuleBase {
         {
           name: 'to string',
           description: 'creates a string of the input',
-          processFunction: (context: any, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
+          processFunction: (_context: any, result: Lookup<any>, inputParams: Lookup<any>, _index:number) => {
             result.b = result.b || [];
             const a = String(inputParams.a);
             result.b.push(a);
@@ -70,7 +70,7 @@ export class DemoModule extends NodoxModuleBase {
         }, {
           name: 'to combined string',
           description: 'creates a combined string of of both input when not empty',
-          processFunction: (context: any, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
+          processFunction: (_context: any, result: Lookup<any>, inputParams: Lookup<any>, _index:number) => {
             result.c = result.b ?? [];
             const a = String(inputParams.a);
             const b = String(inputParams.b);
@@ -105,6 +105,7 @@ export class Demo2Module extends NodoxModuleBase {
   description: string;
   namespace: string;
   definitions: NodoxNodeDefinition[];
+
   constructor () {
     super();
     this.name = 'Mock2';
@@ -120,6 +121,7 @@ export class Demo3Module extends NodoxModuleBase {
   description: string;
   namespace: string;
   definitions: NodoxNodeDefinition[];
+  dependencies: string[];
   constructor () {
     super();
     this.name = 'Mock2';
@@ -129,7 +131,7 @@ export class Demo3Module extends NodoxModuleBase {
     this.definitions = [{
       name: 'to some string',
       description: 'creates some value of type somestring',
-      processFunction: (context: any, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
+      processFunction: (_context: any, result: Lookup<any>, inputParams: Lookup<any>, _index:number) => {
         result.c = result.b ?? [];
         const a = String(inputParams.a);
         const b = String(inputParams.b);
@@ -157,7 +159,7 @@ export class Demo3Module extends NodoxModuleBase {
     }, {
       name: 'any thing',
       description: 'creates anything',
-      processFunction: (context: any, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
+      processFunction: (_context: any, result: Lookup<any>, inputParams: Lookup<any>, _index:number) => {
         result.c = result.b ?? [];
         const a = String(inputParams.a);
         const b = String(inputParams.b);

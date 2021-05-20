@@ -1,4 +1,4 @@
-import { DemoModule } from '../mocks/module';
+import { DemoModule } from './mocks/module';
 
 describe('NodoxModuleBase', () => {
   let warn: any;

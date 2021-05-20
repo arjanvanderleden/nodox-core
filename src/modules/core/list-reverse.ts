@@ -1,6 +1,6 @@
 import { Lookup, NodeProcessingMode, NodoxNodeDefinition, NodoxRunningContext } from '../../types';
 
-const postprocessReverse = (context: NodoxRunningContext, nodeValues: Lookup<any>) => {
+const postprocessReverse = (_context: NodoxRunningContext, nodeValues: Lookup<any>) => {
   nodeValues.keyNames.push('count');
   nodeValues.values.count = nodeValues.values.count || [];
   nodeValues.values.item = nodeValues.values.item || [];
@@ -8,7 +8,7 @@ const postprocessReverse = (context: NodoxRunningContext, nodeValues: Lookup<any
   nodeValues.values.count.push(nodeValues.values.item.length);
 };
 
-const processFunction = (context: NodoxRunningContext, result: Lookup<any>, inputParams: Lookup<any>, index:number) => {
+const processFunction = (_context: NodoxRunningContext, result: Lookup<any>, inputParams: Lookup<any>, _index:number) => {
   result.item = result.item ?? [];
   if (!result.seed) {
     result.seed = [];

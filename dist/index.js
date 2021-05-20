@@ -1,16 +1,8 @@
-"use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __exportStar = (this && this.__exportStar) || function(m, exports) {
-    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-__exportStar(require("./nodox-service"), exports);
-__exportStar(require("./types"), exports);
-__exportStar(require("./modules/nodox-module-base"), exports);
-__exportStar(require("./modules/core"), exports);
+
+'use strict'
+
+if (process.env.NODE_ENV === 'production') {
+  module.exports = require('./nodox-core.cjs.production.min.js')
+} else {
+  module.exports = require('./nodox-core.cjs.development.js')
+}

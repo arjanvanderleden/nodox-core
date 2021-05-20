@@ -29,7 +29,7 @@ export interface NodoxService {
     getNodes(document: NodoxDocument): Array<NodoxNode>;
     getConnections(document: NodoxDocument): Array<Connection>;
     createNewDocument<T>(metaData?: T): NodoxDocument<T>;
-    reAssignIds(document: NodoxDocument): NodoxDocument;
+    cloneDocument(document: NodoxDocument): NodoxDocument;
     fromJson(s: string): NodoxDocument;
     /**
      * Connects and inputConnector with an outputConnector

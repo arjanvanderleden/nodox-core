@@ -7,3 +7,4 @@ export declare type Lookup<T> = {
 };
 export declare function isInput(connector: Connector): connector is InputConnector;
 export declare function isOutput(connector: Connector): connector is OutputConnector;
+export declare type CloneFunction<T> = (item: T) => T;

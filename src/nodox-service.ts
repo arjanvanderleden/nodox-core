@@ -159,6 +159,7 @@ export const create: (getId: IdProvider) => NodoxService = (getId) => {
       document.connections.push(connection);
       return connection;
     }
+    return undefined;
   };
 
   const createNewDocument = <T>(metaData?: T) => {
