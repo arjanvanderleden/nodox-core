@@ -8,12 +8,17 @@ const postprocessReverse = (_context: NodoxRunningContext, nodeValues: Lookup<an
   nodeValues.values.count.push(nodeValues.values.item.length);
 };
 
-const processFunction = (_context: NodoxRunningContext, result: Lookup<any>, inputParams: Lookup<any>, _index:number) => {
+const processFunction = (
+  _context: NodoxRunningContext,
+  result: Lookup<any>,
+  inputParams: Lookup<any>,
+  _index: number
+) => {
   result.item = result.item ?? [];
   if (!result.seed) {
     result.seed = [];
     result.seed.push(inputParams.seed);
-  };
+  }
   const item = inputParams.item;
   result.item.push(item);
 };
@@ -31,16 +36,16 @@ export const listReverse: NodoxNodeDefinition = {
       name: 'item',
       description: 'Item in the list',
       dataType: namespace + '.any',
-      defaultValue: null
-    }
+      defaultValue: null,
+    },
   ],
   outputs: [
     {
       name: 'item',
       description: 'Item in the list',
-      dataType: namespace + '.any'
-    }
+      dataType: namespace + '.any',
+    },
   ],
   icon: 'nodox:list_reverse',
-  fullName: namespace + '.reverse'
+  fullName: namespace + '.reverse',
 };

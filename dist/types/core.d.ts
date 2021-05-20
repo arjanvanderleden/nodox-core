@@ -106,11 +106,11 @@ export interface NodoxService {
      */
     deleteNode(document: NodoxDocument, node: NodoxNode): void;
     /**
-    * Removes a connection and it's references from the document,
-    * @param document
-    * @param connection
-    * @returns void
-    */
+     * Removes a connection and it's references from the document,
+     * @param document
+     * @param connection
+     * @returns void
+     */
     removeConnection(document: NodoxDocument, Id: string): void;
 }
 /**

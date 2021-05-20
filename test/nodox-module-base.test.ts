@@ -16,7 +16,7 @@ describe('NodoxModuleBase', () => {
     const module2 = new DemoModule();
     module2.definitions = module2.definitions.map(definition => ({
       ...definition,
-      fullName: definition.fullName.replace('nodox.modules.mock', 'nodox.modules.mock2')
+      fullName: definition.fullName.replace('nodox.modules.mock', 'nodox.modules.mock2'),
     }));
     const definitionLength = module1.definitions.length;
     expect(typeof module1.merge).toBe('function');

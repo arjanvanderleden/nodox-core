@@ -1,4 +1,11 @@
-import { create, REASON_CIRCULAR_DEPENDENCY, REASON_DATATYPE_MISMATCH, REASON_IDENTICAL_CONNECTOR_TYPES, REASON_IDENTICAL_PARENT_NODE, uuidIdProvider } from '../src/nodox-service';
+import {
+  create,
+  REASON_CIRCULAR_DEPENDENCY,
+  REASON_DATATYPE_MISMATCH,
+  REASON_IDENTICAL_CONNECTOR_TYPES,
+  REASON_IDENTICAL_PARENT_NODE,
+  uuidIdProvider,
+} from '../src/nodox-service';
 import { Demo2Module, Demo3Module, DemoModule } from './mocks/module';
 import { CORE_MODULE_NAMESPACE, isInput, isOutput } from '../src/types';
 
@@ -102,22 +109,32 @@ describe('NodoxService: canAcceptConnection', () => {
 
     // same nodes
     expect(service.canAcceptConnection(document, node1.inputs[0], node1.outputs[0]).canConnect).toBe(false);
-    expect(service.canAcceptConnection(document, node1.inputs[0], node1.outputs[0]).reason).toBe(REASON_IDENTICAL_PARENT_NODE);
+    expect(service.canAcceptConnection(document, node1.inputs[0], node1.outputs[0]).reason).toBe(
+      REASON_IDENTICAL_PARENT_NODE
+    );
     expect(service.canAcceptConnection(document, node1.outputs[0], node1.inputs[0]).canConnect).toBe(false);
-    expect(service.canAcceptConnection(document, node1.inputs[0], node1.outputs[0]).reason).toBe(REASON_IDENTICAL_PARENT_NODE);
+    expect(service.canAcceptConnection(document, node1.inputs[0], node1.outputs[0]).reason).toBe(
+      REASON_IDENTICAL_PARENT_NODE
+    );
 
     // same connectorType
     expect(service.canAcceptConnection(document, node2.inputs[0], node1.inputs[0]).canConnect).toBe(false);
-    expect(service.canAcceptConnection(document, node2.inputs[0], node1.inputs[0]).reason).toBe(REASON_IDENTICAL_CONNECTOR_TYPES);
+    expect(service.canAcceptConnection(document, node2.inputs[0], node1.inputs[0]).reason).toBe(
+      REASON_IDENTICAL_CONNECTOR_TYPES
+    );
     expect(service.canAcceptConnection(document, node2.outputs[0], node1.outputs[0]).canConnect).toBe(false);
-    expect(service.canAcceptConnection(document, node2.outputs[0], node1.outputs[0]).reason).toBe(REASON_IDENTICAL_CONNECTOR_TYPES);
+    expect(service.canAcceptConnection(document, node2.outputs[0], node1.outputs[0]).reason).toBe(
+      REASON_IDENTICAL_CONNECTOR_TYPES
+    );
 
     service.connect(document, node2.inputs[0], node1.outputs[0]);
     service.connect(document, node3.inputs[0], node2.outputs[0]);
     expect(document.connections.length).toBe(2);
 
     expect(service.canAcceptConnection(document, node3.outputs[0], node1.inputs[0]).canConnect).toBe(false);
-    expect(service.canAcceptConnection(document, node3.outputs[0], node1.inputs[0]).reason).toBe(REASON_CIRCULAR_DEPENDENCY);
+    expect(service.canAcceptConnection(document, node3.outputs[0], node1.inputs[0]).reason).toBe(
+      REASON_CIRCULAR_DEPENDENCY
+    );
     // other data types
   });
 
@@ -131,9 +148,13 @@ describe('NodoxService: canAcceptConnection', () => {
 
     // mismatched datatypes
     expect(service.canAcceptConnection(document, node1.inputs[0], node2.outputs[0]).canConnect).toBe(false);
-    expect(service.canAcceptConnection(document, node1.inputs[0], node2.outputs[0]).reason).toBe(REASON_DATATYPE_MISMATCH);
+    expect(service.canAcceptConnection(document, node1.inputs[0], node2.outputs[0]).reason).toBe(
+      REASON_DATATYPE_MISMATCH
+    );
     expect(service.canAcceptConnection(document, node2.inputs[0], node1.outputs[0]).canConnect).toBe(false);
-    expect(service.canAcceptConnection(document, node2.inputs[0], node1.outputs[0]).reason).toBe(REASON_DATATYPE_MISMATCH);
+    expect(service.canAcceptConnection(document, node2.inputs[0], node1.outputs[0]).reason).toBe(
+      REASON_DATATYPE_MISMATCH
+    );
   });
 
   it(`will will connect when one of the data types = ${CORE_MODULE_NAMESPACE}.any`, () => {
@@ -326,7 +347,7 @@ describe('NodoxService: getInput', () => {
     const { service, document, iNode1, sNode2 } = createBasicDocument();
     expect(service.getInput(document, iNode1.inputs[0].id)).toEqual({ node: iNode1, connector: iNode1.inputs[0] });
     expect(service.getInput(document, sNode2.inputs[0].id)).toEqual({ node: sNode2, connector: sNode2.inputs[0] });
-    expect(service.getInput(document, 'does-not-exist')).toEqual({ });
+    expect(service.getInput(document, 'does-not-exist')).toEqual({});
   });
 });
 
@@ -335,16 +356,19 @@ describe('NodoxService: getOutput', () => {
     const { service, document, iNode1, sNode2 } = createBasicDocument();
     expect(service.getOutput(document, iNode1.outputs[0].id)).toEqual({ node: iNode1, connector: iNode1.outputs[0] });
     expect(service.getOutput(document, sNode2.outputs[0].id)).toEqual({ node: sNode2, connector: sNode2.outputs[0] });
-    expect(service.getOutput(document, 'does-not-exist')).toEqual({ });
+    expect(service.getOutput(document, 'does-not-exist')).toEqual({});
   });
 });
 
 describe('NodoxService: getConnector', () => {
   it('should find an outputConnector and the parent Node if the connector with id exists', () => {
     const { service, document, iNode1, sNode2 } = createBasicDocument();
-    expect(service.getConnector(document, iNode1.outputs[0].id)).toEqual({ node: iNode1, connector: iNode1.outputs[0] });
+    expect(service.getConnector(document, iNode1.outputs[0].id)).toEqual({
+      node: iNode1,
+      connector: iNode1.outputs[0],
+    });
     expect(service.getConnector(document, sNode2.inputs[0].id)).toEqual({ node: sNode2, connector: sNode2.inputs[0] });
-    expect(service.getConnector(document, 'does-not-exist')).toEqual({ });
+    expect(service.getConnector(document, 'does-not-exist')).toEqual({});
   });
 });
 
@@ -374,8 +398,7 @@ describe('NodoxService: getNodeFromConnector', () => {
 });
 
 describe('NodoxService: getNodes', () => {
-  it('', () => {
-  });
+  it('', () => {});
 });
 
 describe('NodoxService: indexOfConnector', () => {
@@ -424,27 +447,30 @@ describe('NodoxService: cloneDocument', () => {
     expect(newSNode2).toBeDefined();
 
     // iNode1 => sNode1
-    const newConnection1 = newDocument.connections.find(connection =>
-      connection.inputConnectorId === newSNode1?.inputs[0].id &&
-      connection.outputConnectorId === newINode1?.outputs[0].id &&
-      connection.inputNodeId === newSNode1.id &&
-      connection.outputNodeId === newINode1.id
+    const newConnection1 = newDocument.connections.find(
+      connection =>
+        connection.inputConnectorId === newSNode1?.inputs[0].id &&
+        connection.outputConnectorId === newINode1?.outputs[0].id &&
+        connection.inputNodeId === newSNode1.id &&
+        connection.outputNodeId === newINode1.id
     );
 
     // iNode1 => sNode2
-    const newConnection2 = newDocument.connections.find(connection =>
-      connection.inputConnectorId === newSNode2?.inputs[0].id &&
-      connection.outputConnectorId === newINode1?.outputs[0].id &&
-      connection.inputNodeId === newSNode2.id &&
-      connection.outputNodeId === newINode1.id
+    const newConnection2 = newDocument.connections.find(
+      connection =>
+        connection.inputConnectorId === newSNode2?.inputs[0].id &&
+        connection.outputConnectorId === newINode1?.outputs[0].id &&
+        connection.inputNodeId === newSNode2.id &&
+        connection.outputNodeId === newINode1.id
     );
 
     // iNode2 => iNode1
-    const newConnection3 = newDocument.connections.find(connection =>
-      connection.inputConnectorId === newINode1?.inputs[0].id &&
-      connection.outputConnectorId === newINode2?.outputs[0].id &&
-      connection.inputNodeId === newINode1.id &&
-      connection.outputNodeId === newINode2.id
+    const newConnection3 = newDocument.connections.find(
+      connection =>
+        connection.inputConnectorId === newINode1?.inputs[0].id &&
+        connection.outputConnectorId === newINode2?.outputs[0].id &&
+        connection.inputNodeId === newINode1.id &&
+        connection.outputNodeId === newINode2.id
     );
 
     expect(newConnection1).toBeDefined();

@@ -8,7 +8,7 @@ export abstract class NodoxModuleBase implements NodoxModule {
   abstract definitions: NodoxNodeDefinition[];
   cloneFunctions: Lookup<any> = {};
 
-  merge (otherModule: NodoxModule): NodoxModule {
+  merge(otherModule: NodoxModule): NodoxModule {
     otherModule.definitions.forEach((newDefinition: NodoxNodeDefinition) => {
       if (this.definitions.find(def => def.fullName === newDefinition.fullName)) {
         console.warn(`This module ${this.name}, already has a definition with fullname ${newDefinition.fullName}`);

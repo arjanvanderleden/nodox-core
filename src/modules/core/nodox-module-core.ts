@@ -4,7 +4,7 @@ import { maxDefinition } from './max';
 import { minDefinition } from './min';
 import { listReverse } from './list-reverse';
 import { listShuffleDefinition } from './list-shuffle';
-import { listSortDefinition  } from './list-sort';
+import { listSortDefinition } from './list-sort';
 
 import { CORE_MODULE_NAMESPACE, NodoxNodeDefinition } from '../../types';
 import { NodoxModuleBase } from '../nodox-module-base';
@@ -14,7 +14,7 @@ export class Core extends NodoxModuleBase {
   description: string;
   namespace: string;
   definitions: NodoxNodeDefinition[];
-  constructor () {
+  constructor() {
     super();
     this.name = 'Core';
     this.description = 'Core definitions for Nodox';
@@ -24,23 +24,23 @@ export class Core extends NodoxModuleBase {
       {
         name: 'number',
         description: 'Javascript number',
-        accepts: []
+        accepts: [],
       },
       {
         name: 'string',
         description: 'Javascript string',
-        accepts: ['*']
+        accepts: ['*'],
       },
       {
         name: 'boolean',
         description: 'boolean',
-        accepts: ['*']
+        accepts: ['*'],
       },
       {
         name: 'any',
         description: 'Anything',
-        accepts: ['*']
-      }
+        accepts: ['*'],
+      },
     ];
     this.definitions = [
       addDefinition,
@@ -49,7 +49,7 @@ export class Core extends NodoxModuleBase {
       minDefinition,
       listSortDefinition,
       listShuffleDefinition,
-      listReverse
+      listReverse,
     ];
   }
 }

@@ -12,8 +12,10 @@ const postprocessFunction = (_context: NodoxRunningContext, nodeValues: Lookup<a
   // http://bost.ocks.org/mike/shuffle/
 
   const shuffle = (seed: string, array: Array<any>) => {
-    (<any>Math).seedrandom(seed);
-    let counter = array.length; let temp; let index;
+    (Math as any).seedrandom(seed);
+    let counter = array.length;
+    let temp;
+    let index;
     // While there are elements in the array
     while (counter > 0) {
       // Pick a random index
@@ -31,12 +33,17 @@ const postprocessFunction = (_context: NodoxRunningContext, nodeValues: Lookup<a
   nodeValues.values.count.push(nodeValues.values.item.length);
 };
 
-const processFunction = (_context: NodoxRunningContext, result: Lookup<any>, inputParams: Lookup<any>, _index:number) => {
+const processFunction = (
+  _context: NodoxRunningContext,
+  result: Lookup<any>,
+  inputParams: Lookup<any>,
+  _index: number
+) => {
   result.item = result.item ?? [];
   if (!result.seed) {
     result.seed = [];
     result.seed.push(inputParams.seed);
-  };
+  }
   const item = inputParams.item;
   result.item.push(item);
 };
@@ -52,23 +59,23 @@ export const listShuffleDefinition: NodoxNodeDefinition = {
       name: 'item',
       description: 'Item in the list',
       dataType: CORE_MODULE_NAMESPACE + '.any',
-      defaultValue: null
+      defaultValue: null,
     },
     // this would be a good candidate for a "no-connector" input ....
     {
       name: 'seed',
       description: 'Seed for pseudo random generator',
       dataType: CORE_MODULE_NAMESPACE + '.string',
-      defaultValue: 'for example: Nodox'
-    }
+      defaultValue: 'for example: Nodox',
+    },
   ],
   outputs: [
     {
       name: 'item',
       description: 'Item in the list',
-      dataType: CORE_MODULE_NAMESPACE + '.any'
-    }
+      dataType: CORE_MODULE_NAMESPACE + '.any',
+    },
   ],
   icon: 'nodox:list_shuffle',
-  fullName: CORE_MODULE_NAMESPACE + '.shuffle'
+  fullName: CORE_MODULE_NAMESPACE + '.shuffle',
 };

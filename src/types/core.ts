@@ -4,11 +4,11 @@ import { Lookup } from '.';
 import { NodoxRunningContext } from './nodox-runner';
 
 export enum ConnectorType {
-    input = 'input',
-    output = 'output',
+  input = 'input',
+  output = 'output',
 }
 
-export class InputExhaustedError extends Error {};
+export class InputExhaustedError extends Error {}
 
 /**
  * defines what a node should do during processing
@@ -21,106 +21,109 @@ export class InputExhaustedError extends Error {};
  * - throw: throw InputExhaustedError (processing is aborted by an exception)
  */
 export enum NodeProcessingMode {
-    wrap = 'wrap',
-    addEmpty = 'add-empty',
-    stop = 'stop',
-    throw = 'throw',
+  wrap = 'wrap',
+  addEmpty = 'add-empty',
+  stop = 'stop',
+  throw = 'throw',
 }
 
 export interface NodoxService {
+  registerModule(module: NodoxModule): void;
+  getModules(): Array<NodoxModule>;
+  getDefinition(fullname: string): NodoxNodeDefinition;
 
-    registerModule(module: NodoxModule): void;
-    getModules(): Array<NodoxModule>;
-    getDefinition(fullname : string) : NodoxNodeDefinition;
+  getNodes(document: NodoxDocument): Array<NodoxNode>;
+  getConnections(document: NodoxDocument): Array<Connection>;
+  createNewDocument<T>(metaData?: T): NodoxDocument<T>;
 
-    getNodes(document: NodoxDocument): Array<NodoxNode>;
-    getConnections(document: NodoxDocument): Array<Connection>;
-    createNewDocument<T>(metaData?: T): NodoxDocument<T>;
+  cloneDocument(document: NodoxDocument): NodoxDocument;
 
-    cloneDocument(document: NodoxDocument): NodoxDocument;
+  fromJson(s: string): NodoxDocument;
 
-    fromJson(s: string): NodoxDocument;
+  /**
+   * Connects and inputConnector with an outputConnector
+   * @param document
+   * @param inputConnector
+   * @param outputConnector
+   */
+  connect(document: NodoxDocument, firstConnector: Connector, secondConnector: Connector): Connection | undefined;
 
-    /**
-     * Connects and inputConnector with an outputConnector
-     * @param document
-     * @param inputConnector
-     * @param outputConnector
-     */
-     connect(document: NodoxDocument, firstConnector: Connector, secondConnector: Connector): Connection | undefined;
+  /**
+   * Return true if source and target connector match with respect to dataType
+   * @param sourceConnector
+   * @param targetConnector
+   */
+  canAcceptConnection(
+    document: NodoxDocument,
+    sourceConnector: Connector,
+    targetConnector: Connector
+  ): { canConnect: boolean; reason?: string | undefined };
 
-    /**
-     * Return true if source and target connector match with respect to dataType
-     * @param sourceConnector
-     * @param targetConnector
-     */
-    canAcceptConnection(document: NodoxDocument, sourceConnector: Connector, targetConnector: Connector): {canConnect: boolean, reason?: string | undefined};
+  /**
+   * returns the index in the collection of inputs or outputs
+   * can be used for redering nodes
+   * @param node NodoxNode
+   * @param connector Connector
+   */
+  indexOfConnector(node: NodoxNode, connector: Connector): number;
 
-    /**
-     * returns the index in the collection of inputs or outputs
-     * can be used for redering nodes
-     * @param node NodoxNode
-     * @param connector Connector
-     */
-    indexOfConnector(node: NodoxNode, connector: Connector): number;
+  getNodeFromConnector(document: NodoxDocument, connector: Connector): NodoxNode | undefined;
 
-    getNodeFromConnector(document: NodoxDocument, connector: Connector): NodoxNode | undefined;
+  /**
+   *
+   * @param document
+   * @param id id of connector
+   * @returns {connector: the connector, node: the node this connector belongs to }
+   */
+  getConnector(document: NodoxDocument, id: string): { connector?: Connector; node?: NodoxNode };
 
-    /**
-     *
-     * @param document
-     * @param id id of connector
-     * @returns {connector: the connector, node: the node this connector belongs to }
-     */
-     getConnector(document: NodoxDocument, id: string): {connector?: Connector, node?: NodoxNode};
+  /**
+   *
+   * @param document
+   * @param id id of connector
+   * @returns {connector: the input connector, node: the node this connector belongs to }
+   */
+  getInput(document: NodoxDocument, id: string): { connector?: Connector; node?: NodoxNode };
 
-    /**
-     *
-     * @param document
-     * @param id id of connector
-     * @returns {connector: the input connector, node: the node this connector belongs to }
-     */
-    getInput(document: NodoxDocument, id: string): {connector?: Connector, node?: NodoxNode};
+  /**
+   *
+   * @param document
+   * @param id id of connector
+   * @returns {connector: the output connector, node: the node this connector belongs to }
+   */
+  getOutput(document: NodoxDocument, id: string): { connector?: Connector; node?: NodoxNode };
 
-    /**
-     *
-     * @param document
-     * @param id id of connector
-     * @returns {connector: the output connector, node: the node this connector belongs to }
-     */
-    getOutput(document: NodoxDocument, id: string): {connector?: Connector, node?: NodoxNode};
+  getNode(document: NodoxDocument, id: string): NodoxNode | undefined;
 
-    getNode(document: NodoxDocument, id: string): NodoxNode | undefined;
+  /**
+   * adds an unconnected NodoxNode to the document
+   * @param document
+   * @param definition
+   * @returns the node
+   */
+  addNode(document: NodoxDocument, definition: NodoxNodeDefinition): NodoxNode;
 
-    /**
-     * adds an unconnected NodoxNode to the document
-     * @param document
-     * @param definition
-     * @returns the node
-     */
-    addNode(document: NodoxDocument, definition: NodoxNodeDefinition) : NodoxNode;
+  /**
+   * Deletes an array of nodes from a document
+   * @param document
+   * @param nodes
+   */
+  deleteNodes(document: NodoxDocument, nodes: Array<NodoxNode>): void;
 
-    /**
-     * Deletes an array of nodes from a document
-     * @param document
-     * @param nodes
-     */
-    deleteNodes(document: NodoxDocument, nodes: Array<NodoxNode>): void;
+  /**
+   * removes a node and all related connections from a document
+   * @param document
+   * @param node
+   */
+  deleteNode(document: NodoxDocument, node: NodoxNode): void;
 
-    /**
-     * removes a node and all related connections from a document
-     * @param document
-     * @param node
-     */
-    deleteNode(document: NodoxDocument, node: NodoxNode): void;
-
-     /**
-     * Removes a connection and it's references from the document,
-     * @param document
-     * @param connection
-     * @returns void
-     */
-    removeConnection(document: NodoxDocument, Id: string): void;
+  /**
+   * Removes a connection and it's references from the document,
+   * @param document
+   * @param connection
+   * @returns void
+   */
+  removeConnection(document: NodoxDocument, Id: string): void;
 }
 
 /**
@@ -128,40 +131,40 @@ export interface NodoxService {
  * to the outputConnector of another node
  */
 export interface Connection {
-    id: string;
-    inputConnectorId: string;
-    outputConnectorId: string;
-    inputNodeId: string;
-    outputNodeId: string;
+  id: string;
+  inputConnectorId: string;
+  outputConnectorId: string;
+  inputNodeId: string;
+  outputNodeId: string;
 }
 
 /**
  * A
  */
 export interface Connector {
-    id: string;
-    name: string;
-    label: string;
-    dataType: string;
-    connectorType: ConnectorType;
-    nodeId: string;
+  id: string;
+  name: string;
+  label: string;
+  dataType: string;
+  connectorType: ConnectorType;
+  nodeId: string;
 }
 
 /**
  * A Connector of type output that can connect to a Connector of type input
  */
 export interface OutputConnector extends Connector {
-    connectorType: ConnectorType.output;
+  connectorType: ConnectorType.output;
 }
 /**
  * A Connector of type input that can connect to a Connector of type output
  * only input connectors have a connectorId property (one connection per input)
  */
 export interface InputConnector extends Connector {
-    connectorType: ConnectorType.input;
-    value?: unknown;
-    definitionFullName: string;
-    connectionId?: string;
+  connectorType: ConnectorType.input;
+  value?: unknown;
+  definitionFullName: string;
+  connectionId?: string;
 }
 
 /**
@@ -169,82 +172,87 @@ export interface InputConnector extends Connector {
  * to generate new data that will be presented through outputs of the node
  */
 export interface NodoxNode {
-    id: string;
-    name: string;
-    definitionFullName: string;
-    inputs: InputConnector[];
-    outputs: OutputConnector[];
-    icon?: string;
+  id: string;
+  name: string;
+  definitionFullName: string;
+  inputs: InputConnector[];
+  outputs: OutputConnector[];
+  icon?: string;
 }
 
 /**
  * A collections of nodes and their connections
  * T type of metadata
  */
-export interface NodoxDocument<T = never | any > {
-    id: string;
-    name: string;
-    description?: string;
-    metaData?: T;
-    nodes: Array<NodoxNode>;
-    connections: Array<Connection>;
-    author?: string;
-    authorEmail?: string;
+export interface NodoxDocument<T = never | any> {
+  id: string;
+  name: string;
+  description?: string;
+  metaData?: T;
+  nodes: Array<NodoxNode>;
+  connections: Array<Connection>;
+  author?: string;
+  authorEmail?: string;
 }
 
 export interface DataType {
-    name: string;
-    description: string;
-    accepts: Array<string>;
+  name: string;
+  description: string;
+  accepts: Array<string>;
 }
 
 export type CloneFunction<T> = (objectToClone: T) => T;
 
 export interface NodoxNodeDefinition {
-    name: string;
-    fullName: string;
-    description: string;
-    processFunction: ProcessFunction;
-    inputs: Array<InputDefinition>;
-    outputs: Array<OutputDefinition>;
-    icon?: string;
-    preprocessFunction?: PreprocessFunction;
-    postprocessFunction?: PostprocessFunction;
-    processingMode: NodeProcessingMode;
+  name: string;
+  fullName: string;
+  description: string;
+  processFunction: ProcessFunction;
+  inputs: Array<InputDefinition>;
+  outputs: Array<OutputDefinition>;
+  icon?: string;
+  preprocessFunction?: PreprocessFunction;
+  postprocessFunction?: PostprocessFunction;
+  processingMode: NodeProcessingMode;
 }
 
 export interface NodoxModule {
-    name: string;
-    description: string;
-    namespace: string;
-    dependencies: string[];
-    dataTypes: DataType[];
-    definitions: NodoxNodeDefinition[];
+  name: string;
+  description: string;
+  namespace: string;
+  dependencies: string[];
+  dataTypes: DataType[];
+  definitions: NodoxNodeDefinition[];
 }
 
 export interface InputDefinition {
-    name: string;
-    dataType: string;
-    description?: string;
-    defaultValue?: unknown;
-    editorType?: string;
-    valueOptions?: Array<unknown>
+  name: string;
+  dataType: string;
+  description?: string;
+  defaultValue?: unknown;
+  editorType?: string;
+  valueOptions?: Array<unknown>;
 }
 
 export interface OutputDefinition {
-    name: string;
-    description: string;
-    dataType: string;
+  name: string;
+  description: string;
+  dataType: string;
 }
 
 export interface NodeValues {
-    keyNames: Array<string>;
-    inputLengths: unknown;
-    maxLength: number;
-    minLength: number;
-    values: unknown;
+  keyNames: Array<string>;
+  inputLengths: unknown;
+  maxLength: number;
+  minLength: number;
+  values: unknown;
 }
 
-export type ProcessFunction = (context: NodoxRunningContext, result: Lookup<any>, inputParams: Lookup<any>, index: number) => void;
+export type ProcessFunction = (
+  context: NodoxRunningContext,
+  result: Lookup<any>,
+  inputParams: Lookup<any>,
+  index: number
+) => void;
 export type PreprocessFunction = (context: NodoxRunningContext) => void;
 export type PostprocessFunction = (context: NodoxRunningContext, result: NodeValues) => void;
