@@ -63,9 +63,9 @@ describe('NodoxService: getDefinition', () => {
   service.registerModule(new DemoModule());
 
   it(' should return a registerd definition', () => {
-    const definition = service.getDefinition('nodox.modules.mock.identity');
+    const definition = service.getDefinition('nodox.module.mock.identity');
     expect(definition).toBeDefined();
-    expect(definition.fullName).toBe('nodox.modules.mock.identity');
+    expect(definition.fullName).toBe('nodox.module.mock.identity');
     expect(definition.inputs[0].name).toBe('a');
   });
 
@@ -79,7 +79,7 @@ describe('NodoxService: addNode', () => {
   const service = create(uuidIdProvider);
   const module = new DemoModule();
   service.registerModule(module);
-  const definition = service.getDefinition('nodox.modules.mock.identity');
+  const definition = service.getDefinition('nodox.module.mock.identity');
   const document = service.createNewDocument();
 
   it('should create a node', () => {
@@ -88,7 +88,7 @@ describe('NodoxService: addNode', () => {
     const nodes = service.getNodes(document);
     expect(nodes.length).toBe(1);
     expect(node).toEqual(nodes[0]);
-    expect(node.definitionFullName).toBe('nodox.modules.mock.identity');
+    expect(node.definitionFullName).toBe('nodox.module.mock.identity');
   });
 });
 
@@ -96,7 +96,7 @@ describe('NodoxService: canAcceptConnection', () => {
   const service = create(uuidIdProvider);
   service.registerModule(new DemoModule());
   service.registerModule(new Demo3Module());
-  const definition = service.getDefinition('nodox.modules.mock.identity');
+  const definition = service.getDefinition('nodox.module.mock.identity');
   const document = service.createNewDocument();
 
   it('will result true if two connectors can connect', () => {
@@ -139,8 +139,8 @@ describe('NodoxService: canAcceptConnection', () => {
   });
 
   it('will not connect inputs with mismatched data types', () => {
-    const definitionIdentity = service.getDefinition('nodox.modules.mock.identity');
-    const definitionSomeString = service.getDefinition('nodox.modules.mock3.somestring');
+    const definitionIdentity = service.getDefinition('nodox.module.mock.identity');
+    const definitionSomeString = service.getDefinition('nodox.module.mock3.somestring');
     const document = service.createNewDocument();
 
     const node1 = service.addNode(document, definitionIdentity);
@@ -158,9 +158,9 @@ describe('NodoxService: canAcceptConnection', () => {
   });
 
   it(`will will connect when one of the data types = ${CORE_MODULE_NAMESPACE}.any`, () => {
-    const definitionIdentity = service.getDefinition('nodox.modules.mock.identity');
-    const definitionSomeString = service.getDefinition('nodox.modules.mock3.somestring');
-    const definitionAnything = service.getDefinition('nodox.modules.mock3.anything');
+    const definitionIdentity = service.getDefinition('nodox.module.mock.identity');
+    const definitionSomeString = service.getDefinition('nodox.module.mock3.somestring');
+    const definitionAnything = service.getDefinition('nodox.module.mock3.anything');
     const document = service.createNewDocument();
 
     const node1 = service.addNode(document, definitionIdentity);
@@ -192,8 +192,8 @@ const createBasicDocument = () => {
   const module = new DemoModule();
   service.registerModule(module);
   const document = service.createNewDocument();
-  const identityDefinition = service.getDefinition('nodox.modules.mock.identity');
-  const toStringDefinition = service.getDefinition('nodox.modules.mock.tostring');
+  const identityDefinition = service.getDefinition('nodox.module.mock.identity');
+  const toStringDefinition = service.getDefinition('nodox.module.mock.tostring');
   const iNode1 = service.addNode(document, identityDefinition);
   const iNode2 = service.addNode(document, identityDefinition);
   const sNode1 = service.addNode(document, toStringDefinition);
@@ -207,14 +207,14 @@ describe('createBasicDocument', () => {
     expect(document).toBeDefined();
     expect(document.nodes.length).toBe(4);
 
-    expect(iNode1.inputs[0].dataType).toBe('nodox.modules.mock.number');
-    expect(iNode1.outputs[0].dataType).toBe('nodox.modules.mock.number');
-    expect(iNode2.inputs[0].dataType).toBe('nodox.modules.mock.number');
-    expect(iNode2.outputs[0].dataType).toBe('nodox.modules.mock.number');
-    expect(sNode1.inputs[0].dataType).toBe('nodox.modules.mock.any');
-    expect(sNode1.outputs[0].dataType).toBe('nodox.modules.mock.string');
-    expect(sNode2.inputs[0].dataType).toBe('nodox.modules.mock.any');
-    expect(sNode2.outputs[0].dataType).toBe('nodox.modules.mock.string');
+    expect(iNode1.inputs[0].dataType).toBe('nodox.module.mock.number');
+    expect(iNode1.outputs[0].dataType).toBe('nodox.module.mock.number');
+    expect(iNode2.inputs[0].dataType).toBe('nodox.module.mock.number');
+    expect(iNode2.outputs[0].dataType).toBe('nodox.module.mock.number');
+    expect(sNode1.inputs[0].dataType).toBe('nodox.module.mock.any');
+    expect(sNode1.outputs[0].dataType).toBe('nodox.module.mock.string');
+    expect(sNode2.inputs[0].dataType).toBe('nodox.module.mock.any');
+    expect(sNode2.outputs[0].dataType).toBe('nodox.module.mock.string');
   });
 });
 
@@ -299,7 +299,7 @@ describe('NodoxService: deleteNode', () => {
 
   it('does not delete other connections', () => {
     const { service, document, iNode1, iNode2, sNode1 } = createBasicDocument();
-    const combineStringsDefinition = service.getDefinition('nodox.modules.mock.combinestrings');
+    const combineStringsDefinition = service.getDefinition('nodox.module.mock.combinestrings');
     const cNode1 = service.addNode(document, combineStringsDefinition);
     expect(cNode1).toBeDefined();
 
@@ -404,7 +404,7 @@ describe('NodoxService: getNodes', () => {
 describe('NodoxService: indexOfConnector', () => {
   it('', () => {
     const { service, document, iNode1 } = createBasicDocument();
-    const combineStringsDefinition = service.getDefinition('nodox.modules.mock.combinestrings');
+    const combineStringsDefinition = service.getDefinition('nodox.module.mock.combinestrings');
     const cNode1 = service.addNode(document, combineStringsDefinition);
     expect(cNode1).toBeDefined();
 

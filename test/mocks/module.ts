@@ -13,7 +13,7 @@ export class DemoModule extends NodoxModuleBase {
     super();
     this.name = 'Mock';
     this.description = 'Mock definitions for Nodox';
-    this.namespace = 'nodox.modules.mock';
+    this.namespace = 'nodox.module.mock';
     this.dependencies = [];
     this.dataTypes = [
       {
@@ -125,8 +125,8 @@ export class Demo2Module extends NodoxModuleBase {
     super();
     this.name = 'Mock2';
     this.description = 'Mock2 definitions for Nodox';
-    this.namespace = 'nodox.modules.mock2';
-    this.dependencies = ['nodox.modules.mock'];
+    this.namespace = 'nodox.module.mock2';
+    this.dependencies = ['nodox.module.mock'];
     this.definitions = [];
   }
 }
@@ -141,7 +141,7 @@ export class Demo3Module extends NodoxModuleBase {
     super();
     this.name = 'Mock2';
     this.description = 'Mock2 definitions for Nodox';
-    this.namespace = 'nodox.modules.mock3';
+    this.namespace = 'nodox.module.mock3';
     this.dependencies = [];
     this.definitions = [
       {

@@ -26,10 +26,10 @@ export class XXX extends NodoxModule {
     super();
     this.name = "XXX";
     this.description = "<description>";
-    this.namespace = "nodox.modules.XXX";
+    this.namespace = "nodox.module.XXX";
     this.dependencies = [
-      "nodox.modules.core",
-      "nodox.modules.Calc"];
+      "nodox.module.core",
+      "nodox.module.Calc"];
     this.dataTypes = <DataType[]>[
       {
         name: "dtXXX",
@@ -48,7 +48,7 @@ export class XXX extends NodoxModule {
           {
             name: "inputXXX",
             description: "<description>",
-            dataType: "nodox.modules.core.number",
+            dataType: "nodox.module.core.number",
             defaultValue: 0
           }
         ],

@@ -7,12 +7,14 @@
 
 ## Usage
 
-    var NodoxService = require('nodox-core').NodoxService;
-    //or use import {NodoxService} from 'nodox-core';
-    var service = new NodoxService();
+    import { NodoxService, Core } from '@avdl/nodox-core';
+    const service = new NodoxService();
 
-    // TODO register Nodox Modules
-    var document = service.createNewDocument();
+    // register modules that define nodes
+    service.register(new Core());
+    const document = service.createNewDocument();
+
+
 
 
 ## Tests
