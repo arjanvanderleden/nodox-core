@@ -211,11 +211,17 @@ export const create: (getId: IdProvider) => NodoxService = getId => {
       lookup[item.id] = getId();
       return lookup;
     };
+
+    const toNewConnectorIds = (nodeId:string) => (lookup: Lookup<string>, item: { id: string }) => {
+      lookup[item.id] = item.id.replace(nodeId, lookup[nodeId]);
+      return lookup;
+    };
+
     const newIds: Lookup<string> = { [document.id]: getId() };
     document.nodes.reduce(toNewIds, newIds);
     document.nodes.forEach(node => {
-      node.inputs.reduce(toNewIds, newIds);
-      node.outputs.reduce(toNewIds, newIds);
+      node.inputs.reduce(toNewConnectorIds(node.id), newIds);
+      node.outputs.reduce(toNewConnectorIds(node.id), newIds);
     });
     document.connections.reduce(toNewIds, newIds);
 
@@ -278,9 +284,9 @@ export const create: (getId: IdProvider) => NodoxService = getId => {
   const getNodes = (document: NodoxDocument) => document.nodes;
 
   const addNode = (document: NodoxDocument, definition: NodoxNodeDefinition) => {
-    const toInputConnector = (nodeId: string) => (inputDefinition: InputDefinition) =>
+    const toInputConnector = (nodeId: string) => (inputDefinition: InputDefinition, index: number) =>
       ({
-        id: getId(),
+        id: `in:${index}:${nodeId}`,
         nodeId,
         dataType: inputDefinition.dataType,
         name: inputDefinition.name,
@@ -288,9 +294,9 @@ export const create: (getId: IdProvider) => NodoxService = getId => {
         connectorType: ConnectorType.input,
       } as InputConnector);
 
-    const toOutputConnector = (nodeId: string) => (outputDefinition: OutputDefinition) =>
+    const toOutputConnector = (nodeId: string) => (outputDefinition: OutputDefinition, index: number) =>
       ({
-        id: getId(),
+        id: `out:${index}:${nodeId}`,
         connectorType: ConnectorType.output,
         dataType: outputDefinition.dataType,
         nodeId,

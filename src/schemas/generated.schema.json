@@ -13,17 +13,21 @@
                 "inputConnectorId": {
                     "type": "string"
                 },
+                "inputNodeId": {
+                    "type": "string"
+                },
                 "outputConnectorId": {
+                    "type": "string"
+                },
+                "outputNodeId": {
                     "type": "string"
                 }
             },
             "type": "object"
         },
         "Connector": {
+            "description": "A",
             "properties": {
-                "connectionId": {
-                    "type": "string"
-                },
                 "connectorType": {
                     "$ref": "#/definitions/ConnectorType"
                 },
@@ -70,6 +74,7 @@
             "type": "object"
         },
         "InputConnector": {
+            "description": "A Connector of type input that can connect to a Connector of type output\nonly input connectors have a connectorId property (one connection per input)",
             "properties": {
                 "connectionId": {
                     "type": "string"
@@ -173,6 +178,7 @@
             "type": "object"
         },
         "NodoxDocument": {
+            "description": "A collections of nodes and their connections\nT type of metadata",
             "properties": {
                 "author": {
                     "type": "string"
@@ -191,6 +197,9 @@
                 },
                 "id": {
                     "type": "string"
+                },
+                "metaData": {
+                    "$ref": "#/definitions/T"
                 },
                 "name": {
                     "type": "string"
@@ -237,6 +246,7 @@
             "type": "object"
         },
         "NodoxNode": {
+            "description": "An element in the document that holds inputs that provide input data\nto generate new data that will be presented through outputs of the node",
             "properties": {
                 "definitionFullName": {
                     "type": "string"
@@ -282,9 +292,6 @@
                     },
                     "type": "array"
                 },
-                "moduleName": {
-                    "type": "string"
-                },
                 "name": {
                     "type": "string"
                 },
@@ -313,10 +320,8 @@
             "type": "object"
         },
         "OutputConnector": {
+            "description": "A Connector of type output that can connect to a Connector of type input",
             "properties": {
-                "connectionId": {
-                    "type": "string"
-                },
                 "connectorType": {
                     "enum": [
                         "output"
@@ -363,6 +368,9 @@
         },
         "ProcessFunction": {
             "typeof": "function"
+        },
+        "T": {
+            "type": "object"
         }
     }
 }

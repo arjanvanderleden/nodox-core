@@ -11,6 +11,7 @@
     "node": ">=10"
   },
   "scripts": {
+    "generate-schemas": "typescript-json-schema ./tsconfig.json \"*\" --include src/types/core.ts --useTypeOfKeyword --out src/schemas/generated.schema.json",
     "start": "tsdx watch",
     "build": "tsdx build",
     "test": "tsdx test --coverage",
@@ -19,7 +20,6 @@
     "size": "size-limit",
     "analyze": "size-limit --why"
   },
-  "peerDependencies": {},
   "husky": {
     "hooks": {
       "pre-commit": "tsdx lint"
@@ -54,6 +54,7 @@
     "typescript": "^3.9.9"
   },
   "dependencies": {
+    "typescript-json-schema": "^0.50.0",
     "uuid": "^3.1.0"
   }
 }
