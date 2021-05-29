@@ -342,6 +342,20 @@ export const create: (getId: IdProvider) => NodoxService = getId => {
     document.nodes.splice(document.nodes.indexOf(node), 1);
   };
 
+  const getConnectedNode = (document: NodoxDocument, connector: Connector) => {
+    const connection = document.connections.find(connection => {
+      return connection.inputConnectorId === connector.id ||
+      connection.outputConnectorId === connector.id;
+    });
+    if (connection === undefined) {
+      return undefined;
+    }
+    const node = document.nodes
+      .filter(node => node.id !== connector.nodeId)
+      .find(node => node.id === connection.inputNodeId || node.id === connection.outputNodeId);
+    return node;
+  };
+
   const service: NodoxService = {
     getConnections,
     getDefinition,
@@ -357,6 +371,7 @@ export const create: (getId: IdProvider) => NodoxService = getId => {
     getModules,
     getNode,
     getNodeFromConnector,
+    getConnectedNode,
     getNodes,
     getOutput,
     indexOfConnector,

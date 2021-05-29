@@ -304,6 +304,24 @@ describe('NodoxService: connect', () => {
   });
 });
 
+
+describe('NodoxService: getConnectedNode', () => {
+  it(' should return the node on the other side of the connection', () =>{
+    const { document, service, iNode1, iNode2 } = createBasicDocument();
+    expect(service.getConnectedNode(document, iNode1.inputs[0])).toBeUndefined();
+    expect(service.getConnectedNode(document, iNode1.outputs[0])).toBeUndefined();
+    expect(service.getConnectedNode(document, iNode2.inputs[0])).toBeUndefined();
+    expect(service.getConnectedNode(document, iNode2.outputs[0])).toBeUndefined();
+
+    service.connect(document, iNode1.outputs[0], iNode2.inputs[0]);
+
+    expect(service.getConnectedNode(document, iNode1.inputs[0])).toBeUndefined();
+    expect(service.getConnectedNode(document, iNode1.outputs[0])).toBe(iNode2);
+    expect(service.getConnectedNode(document, iNode2.inputs[0])).toBe(iNode1);
+    expect(service.getConnectedNode(document, iNode2.outputs[0])).toBeUndefined();
+
+  });
+});
 describe('NodoxService: deleteNode', () => {
   it('deletes a node', () => {
     const { service, document, iNode1 } = createBasicDocument();

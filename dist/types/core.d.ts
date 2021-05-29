@@ -55,6 +55,7 @@ export interface NodoxService {
      */
     indexOfConnector(node: NodoxNode, connector: Connector): number;
     getNodeFromConnector(document: NodoxDocument, connector: Connector): NodoxNode | undefined;
+    getConnectedNode(document: NodoxDocument, connector: Connector): NodoxNode | undefined;
     /**
      *
      * @param document
