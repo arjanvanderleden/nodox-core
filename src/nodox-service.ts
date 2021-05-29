@@ -285,22 +285,35 @@ export const create: (getId: IdProvider) => NodoxService = getId => {
 
   const addNode = (document: NodoxDocument, definition: NodoxNodeDefinition) => {
     const toInputConnector = (nodeId: string) => (inputDefinition: InputDefinition, index: number) =>
-      ({
+      {
+        const connector : InputConnector = {
         id: `in:${index}:${nodeId}`,
         nodeId,
         dataType: inputDefinition.dataType,
         name: inputDefinition.name,
+        label: inputDefinition.label,
+        description: inputDefinition.description,
         definitionFullName: definition.fullName,
         connectorType: ConnectorType.input,
-      } as InputConnector);
+        connectionId: undefined,
+        value: inputDefinition.defaultValue,
+      };
+    return connector;
+  };
 
     const toOutputConnector = (nodeId: string) => (outputDefinition: OutputDefinition, index: number) =>
-      ({
+      {
+        const connector: OutputConnector = {
         id: `out:${index}:${nodeId}`,
         connectorType: ConnectorType.output,
         dataType: outputDefinition.dataType,
+        name: outputDefinition.name,
+        label: outputDefinition.label,
+        description: outputDefinition.description,
         nodeId,
-      } as OutputConnector);
+        };
+        return connector;
+      };
 
     const id = getId();
     const node: NodoxNode = {

@@ -7,7 +7,7 @@ import {
   uuidIdProvider,
 } from '../src/nodox-service';
 import { Demo2Module, Demo3Module, DemoModule } from './mocks/module';
-import { CORE_MODULE_NAMESPACE, isInput, isOutput } from '../src/types';
+import { ConnectorType, CORE_MODULE_NAMESPACE, InputConnector, isInput, isOutput, OutputConnector } from '../src/types';
 
 describe('NodoxService: createNewDocument', () => {
   it('creates a new document', () => {
@@ -83,12 +83,42 @@ describe('NodoxService: addNode', () => {
   const document = service.createNewDocument();
 
   it('should create a node', () => {
-    expect(service.getNodes(document).length).toBe(0);
     const node = service.addNode(document, definition);
     const nodes = service.getNodes(document);
     expect(nodes.length).toBe(1);
     expect(node).toEqual(nodes[0]);
     expect(node.definitionFullName).toBe('nodox.module.mock.identity');
+  });
+
+  it('should create outputs', () => {
+    const node = service.addNode(document, definition);
+    expect(node.outputs.length).toBe(definition.outputs.length);
+    expect(node.outputs[0]).toEqual<OutputConnector>({
+      id: node.outputs[0].id,
+      dataType: definition.outputs[0].dataType,
+      name: definition.outputs[0].name,
+      description: definition.outputs[0].description,
+      label: definition.outputs[0].label,
+      connectorType: ConnectorType.output,
+      nodeId: node.id,
+    });
+  });
+
+  it('should create inputs', () => {
+    const node = service.addNode(document, definition);
+    expect(node.inputs.length).toBe(definition.inputs.length);
+    expect(node.inputs[0]).toEqual<InputConnector>({
+      id: node.inputs[0].id,
+      dataType: definition.inputs[0].dataType,
+      definitionFullName: definition.fullName,
+      name: definition.inputs[0].name,
+      description: definition.inputs[0].description,
+      label: definition.inputs[0].label,
+      connectorType: ConnectorType.input,
+      nodeId: node.id,
+      connectionId: undefined,
+      value: definition.inputs[0].defaultValue,
+    });
   });
 });
 

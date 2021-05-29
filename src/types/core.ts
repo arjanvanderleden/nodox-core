@@ -144,7 +144,8 @@ export interface Connection {
 export interface Connector {
   id: string;
   name: string;
-  label: string;
+  label?: string;
+  description?: string;
   dataType: string;
   connectorType: ConnectorType;
   nodeId: string;
@@ -227,6 +228,7 @@ export interface NodoxModule {
 
 export interface InputDefinition {
   name: string;
+  label?: string;
   dataType: string;
   description?: string;
   defaultValue?: unknown;
@@ -236,6 +238,7 @@ export interface InputDefinition {
 
 export interface OutputDefinition {
   name: string;
+  label?: string;
   description: string;
   dataType: string;
 }
