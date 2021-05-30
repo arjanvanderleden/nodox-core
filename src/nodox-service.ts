@@ -44,7 +44,6 @@ export const create: (getId: IdProvider) => NodoxService = getId => {
 
   const registerModule = (module: NodoxModule) => {
     module.definitions.forEach(definition => {
-      definition.icon = definition.icon || 'nodox:core_nodox';
       const existingDef = getDefinition(definition.fullName);
       if (existingDef) {
         throw new Error(`duplicate definition (${definition.fullName}): ${module.name}`);
