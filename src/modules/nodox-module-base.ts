@@ -59,7 +59,6 @@ export class XXX extends NodoxModule {
             dataType: this.namespace + ".dtXXX"
           }
         ],
-        icon: "nodox:XXX",
         fullName: this.namespace + ".XXX"
       }
     ];

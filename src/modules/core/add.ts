@@ -44,6 +44,5 @@ export const addDefinition: NodoxNodeDefinition = {
       dataType: CORE_MODULE_NAMESPACE + '.number',
     },
   ],
-  icon: 'nodox:core_nodox',
   fullName: CORE_MODULE_NAMESPACE + '.add',
 };

@@ -1,5 +1,5 @@
-import { NodoxModuleBase } from '../../src/modules/nodox-module-base';
-import { CORE_MODULE_NAMESPACE, DataType, Lookup, NodeProcessingMode, NodoxNodeDefinition } from '../../src/types';
+import { NodoxModuleBase } from '../modules/nodox-module-base';
+import { CORE_MODULE_NAMESPACE, DataType, Lookup, NodeProcessingMode, NodoxNodeDefinition } from '../types';
 export class DemoModule extends NodoxModuleBase {
   name: string;
   description: string;

@@ -179,7 +179,6 @@ export interface NodoxNode {
   definitionFullName: string;
   inputs: InputConnector[];
   outputs: OutputConnector[];
-  icon?: string;
 }
 
 /**
@@ -212,7 +211,6 @@ export interface NodoxNodeDefinition {
   processFunction: ProcessFunction;
   inputs: Array<InputDefinition>;
   outputs: Array<OutputDefinition>;
-  icon?: string;
   preprocessFunction?: PreprocessFunction;
   postprocessFunction?: PostprocessFunction;
   processingMode: NodeProcessingMode;
@@ -225,6 +223,7 @@ export interface NodoxModule {
   dependencies: string[];
   dataTypes: DataType[];
   definitions: NodoxNodeDefinition[];
+  cloneFunctions: Lookup<CloneFunction<any>>;
 }
 
 export interface InputDefinition {

@@ -39,6 +39,5 @@ export const maxDefinition: NodoxNodeDefinition = {
       dataType: CORE_MODULE_NAMESPACE + '.number',
     },
   ],
-  icon: 'nodox:core_max',
   fullName: CORE_MODULE_NAMESPACE + '.max',
 };

@@ -322,7 +322,6 @@ export const create: (getId: IdProvider) => NodoxService = getId => {
       definitionFullName: definition.fullName,
       inputs: definition.inputs.map(toInputConnector(id)),
       outputs: definition.outputs.map(toOutputConnector(id)),
-      icon: definition.icon,
     };
     document.nodes.push(node);
     return node;

@@ -46,6 +46,5 @@ export const listReverse: NodoxNodeDefinition = {
       dataType: namespace + '.any',
     },
   ],
-  icon: 'nodox:list_reverse',
   fullName: namespace + '.reverse',
 };

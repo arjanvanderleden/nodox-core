@@ -76,6 +76,5 @@ export const listShuffleDefinition: NodoxNodeDefinition = {
       dataType: CORE_MODULE_NAMESPACE + '.any',
     },
   ],
-  icon: 'nodox:list_shuffle',
   fullName: CORE_MODULE_NAMESPACE + '.shuffle',
 };

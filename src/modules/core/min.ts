@@ -39,6 +39,5 @@ export const minDefinition: NodoxNodeDefinition = {
       dataType: CORE_MODULE_NAMESPACE + '.number',
     },
   ],
-  icon: 'nodox:core_min',
   fullName: CORE_MODULE_NAMESPACE + '.min',
 };

@@ -51,6 +51,5 @@ export const listSortDefinition: NodoxNodeDefinition = {
       dataType: CORE_MODULE_NAMESPACE + '.any',
     },
   ],
-  icon: 'nodox:list_sort',
   fullName: CORE_MODULE_NAMESPACE + '.sort',
 };
